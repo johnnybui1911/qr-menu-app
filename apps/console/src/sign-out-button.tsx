@@ -28,13 +28,13 @@ export function SignOutButton({ redirect = defaultRedirect }: { redirect?: (url:
   }
 
   return (
-    <div className="sign-out">
+    <div className="sign-out flex flex-col gap-2">
       {failed && (
         <p className="console-error" role="alert">
           Đăng xuất chưa thành công, vui lòng thử lại.
         </p>
       )}
-      <button type="button" onClick={signOut} disabled={pending}>
+      <button type="button" className="px-3" onClick={signOut} disabled={pending}>
         {pending ? 'Đang đăng xuất…' : 'Đăng xuất'}
       </button>
     </div>

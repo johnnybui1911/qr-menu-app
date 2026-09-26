@@ -69,40 +69,45 @@ export function StaffAdmin({ session }: { session: ConsoleSession }) {
 
   return (
     <section className="console-screen staff-admin" aria-label="Quản lý nhân viên">
-      <h1>Nhân viên</h1>
+      <h1 className="page-title">Nhân viên</h1>
       {error && (
         <p className="console-error" role="alert">
           {error}
         </p>
       )}
+      {newInvitationUrl && <div className="dialog-backdrop" aria-hidden="true" />}
       {newInvitationUrl && (
         <div role="dialog" aria-label="Lời mời đã tạo" className="invitation-dialog">
-          <p>Gửi đường dẫn này cho nhân viên (chỉ hiện một lần):</p>
+          <p className="text-sm font-medium">Gửi đường dẫn này cho nhân viên (chỉ hiện một lần):</p>
           <p className="invitation-url">{newInvitationUrl}</p>
-          <button type="button" onClick={() => setNewInvitationUrl(null)}>
+          <button type="button" className="w-full" onClick={() => setNewInvitationUrl(null)}>
             Đóng
           </button>
         </div>
       )}
-      <div className="staff-invite-form">
-        <label htmlFor="invite-email">Email nhân viên</label>
-        <input id="invite-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
-        <label htmlFor="invite-role">Vai trò</label>
-        <select id="invite-role" value={role} onChange={(event) => setRole(event.target.value === 'owner' ? 'owner' : 'staff')}>
-          <option value="staff">Nhân viên</option>
-          <option value="owner">Chủ quán</option>
-        </select>
-        <button type="button" onClick={sendInvitation}>
+      <div className="staff-invite-form card mb-6 grid gap-x-3 sm:grid-cols-[1fr_12rem_auto] sm:items-end">
+        <div>
+          <label htmlFor="invite-email">Email nhân viên</label>
+          <input id="invite-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+        </div>
+        <div>
+          <label htmlFor="invite-role">Vai trò</label>
+          <select id="invite-role" value={role} onChange={(event) => setRole(event.target.value === 'owner' ? 'owner' : 'staff')}>
+            <option value="staff">Nhân viên</option>
+            <option value="owner">Chủ quán</option>
+          </select>
+        </div>
+        <button type="button" className="btn-primary mt-3 sm:mt-0" onClick={sendInvitation}>
           Gửi lời mời
         </button>
       </div>
-      <h2>Lời mời đang chờ</h2>
-      <ul className="invitation-list">
+      <h2 className="section-title">Lời mời đang chờ</h2>
+      <ul className="invitation-list card divide-y divide-slate-100 p-0 empty:hidden">
         {invitations.map((invitation) => (
-          <li key={invitation.id}>
+          <li key={invitation.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm [overflow-wrap:anywhere]">
             {invitation.targetEmail} — {invitation.role === 'owner' ? 'Chủ quán' : 'Nhân viên'} — {invitation.status}
             {invitation.status === 'pending' && (
-              <button type="button" onClick={() => revokeInvitation(invitation.id)}>
+              <button type="button" className="btn-danger" onClick={() => revokeInvitation(invitation.id)}>
                 Thu hồi
               </button>
             )}

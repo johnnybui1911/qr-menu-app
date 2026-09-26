@@ -1,5 +1,6 @@
 import { cloudflare } from '@cloudflare/vite-plugin';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import { productionImportGraph } from '../../scripts/assert-production-import-graph.ts';
 
@@ -12,6 +13,7 @@ export default defineConfig({
   root: import.meta.dirname,
   plugins: [
     react(),
+    tailwindcss(),
     cloudflare({ configPath: '../../wrangler.jsonc', persistState: { path: process.env.QR_LOCAL_STATE_DIR ?? '../../.wrangler/state' } }),
     productionImportGraph('console'),
   ],

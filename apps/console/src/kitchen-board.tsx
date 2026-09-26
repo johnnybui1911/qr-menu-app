@@ -151,40 +151,45 @@ export function KitchenBoard({ session }: { session: ConsoleSession }) {
 
   return (
     <section className="console-screen kitchen-board" aria-label="Màn bếp">
-      <h1>Bếp</h1>
+      <h1 className="page-title">Bếp</h1>
       {error && (
         <p className="console-error" role="alert">
           {error}
         </p>
       )}
-      {grouped.length === 0 && <p>Chưa có đơn nào đang chờ.</p>}
+      {grouped.length === 0 && <p className="card text-center text-sm text-slate-500">Chưa có đơn nào đang chờ.</p>}
       {grouped.map(([tableNumber, tableOrders]) => (
-        <div key={tableNumber} className="kitchen-table-group">
-          <h2>Bàn {tableNumber}</h2>
-          <ul className="kitchen-ticket-list">
+        <div key={tableNumber} className="kitchen-table-group mb-8">
+          <h2 className="section-title">Bàn {tableNumber}</h2>
+          <ul className="kitchen-ticket-list card-grid">
             {tableOrders.map((kitchenOrder) => (
-              <li key={kitchenOrder.id} data-testid={`ticket-${kitchenOrder.id}`} className="kitchen-ticket" data-status={kitchenOrder.status}>
-                <div className="kitchen-ticket-header">
-                  <strong>{kitchenOrder.orderCode}</strong>
+              <li
+                key={kitchenOrder.id}
+                data-testid={`ticket-${kitchenOrder.id}`}
+                className="kitchen-ticket card flex flex-col gap-3 border-l-4 data-[status=fulfilled]:border-l-emerald-500 data-[status=paid]:border-l-brand-600 data-[status=preparing]:border-l-amber-500"
+                data-status={kitchenOrder.status}
+              >
+                <div className="kitchen-ticket-header flex flex-wrap items-center justify-between gap-2">
+                  <strong className="font-mono text-base font-semibold">{kitchenOrder.orderCode}</strong>
                   {kitchenOrder.needsAttention && <span className="badge badge-attention">Cần chú ý</span>}
                 </div>
-                <ul className="kitchen-ticket-items">
+                <ul className="kitchen-ticket-items space-y-1 text-sm">
                   {kitchenOrder.items.map((item, index) => (
                     <li key={index}>
                       {item.quantity}× {item.productName}
-                      {item.notes && <span className="kitchen-ticket-note"> — {item.notes}</span>}
+                      {item.notes && <span className="kitchen-ticket-note text-slate-500 italic"> — {item.notes}</span>}
                     </li>
                   ))}
                 </ul>
-                <p className="kitchen-ticket-total">{formatVnd(kitchenOrder.totalAmountMinor)}</p>
-                <div className="kitchen-ticket-actions">
+                <p className="kitchen-ticket-total text-right text-lg font-bold tabular-nums">{formatVnd(kitchenOrder.totalAmountMinor)}</p>
+                <div className="kitchen-ticket-actions flex flex-wrap gap-2 empty:hidden [&>button]:flex-1">
                   {kitchenOrder.status === 'paid' && canPrepare && (
-                    <button type="button" disabled={busyOrderIds.has(kitchenOrder.id)} onClick={() => runCommand(kitchenOrder.id, 'prepare')}>
+                    <button type="button" className="btn-primary" disabled={busyOrderIds.has(kitchenOrder.id)} onClick={() => runCommand(kitchenOrder.id, 'prepare')}>
                       Nhận đơn & Chế biến
                     </button>
                   )}
                   {kitchenOrder.status === 'preparing' && canFulfill && (
-                    <button type="button" disabled={busyOrderIds.has(kitchenOrder.id)} onClick={() => runCommand(kitchenOrder.id, 'fulfill')}>
+                    <button type="button" className="btn-primary" disabled={busyOrderIds.has(kitchenOrder.id)} onClick={() => runCommand(kitchenOrder.id, 'fulfill')}>
                       Giao món
                     </button>
                   )}
@@ -195,24 +200,25 @@ export function KitchenBoard({ session }: { session: ConsoleSession }) {
                   )}
                 </div>
                 {canRequestRefund && (
-                  <div className="kitchen-refund-request">
+                  <div className="kitchen-refund-request border-t border-dashed border-slate-200 pt-1">
                     <label htmlFor={`refund-reason-${kitchenOrder.id}`}>Lý do hoàn tiền</label>
                     <textarea
                       id={`refund-reason-${kitchenOrder.id}`}
                       value={refundDrafts[kitchenOrder.id] ?? ''}
                       onChange={(event) => setRefundDrafts((previous) => ({ ...previous, [kitchenOrder.id]: event.target.value }))}
+                      rows={2}
                     />
-                    <button type="button" disabled={(refundDrafts[kitchenOrder.id] ?? '').trim().length === 0} onClick={() => submitRefundRequest(kitchenOrder.id)}>
+                    <button type="button" className="btn-danger mt-2 w-full" disabled={(refundDrafts[kitchenOrder.id] ?? '').trim().length === 0} onClick={() => submitRefundRequest(kitchenOrder.id)}>
                       Yêu cầu hoàn tiền
                     </button>
                   </div>
                 )}
                 {eventsByOrder[kitchenOrder.id] !== undefined && (
-                  <div className="kitchen-provider-events">
+                  <div className="kitchen-provider-events border-t border-dashed border-slate-200 pt-3 text-sm text-slate-600">
                     {eventsByOrder[kitchenOrder.id] === 'loading' ? (
                       <p>Đang tải giao dịch…</p>
                     ) : (
-                      <ul>
+                      <ul className="space-y-1">
                         {(eventsByOrder[kitchenOrder.id] as ProviderEvent[]).map((event) => (
                           <li key={event.id}>
                             {event.source} — {event.outcome}

@@ -45,15 +45,15 @@ export function InviteAccept({ redirect = defaultRedirect }: { redirect?: (url: 
   if (!ready) return null;
 
   return (
-    <main className="console-screen invite-accept">
-      <h1>Lời mời tham gia Console</h1>
-      <p>Đăng nhập bằng tài khoản Google được mời để tiếp tục.</p>
+    <main className="console-screen invite-accept standalone-screen">
+      <h1 className="text-xl font-bold">Lời mời tham gia Console</h1>
+      <p className="mt-2 text-sm text-slate-600">Đăng nhập bằng tài khoản Google được mời để tiếp tục.</p>
       {error && (
         <p className="console-error" role="alert">
           {error}
         </p>
       )}
-      <button type="button" onClick={handleSignIn} disabled={pending}>
+      <button type="button" className="btn-primary mt-6 w-full" onClick={handleSignIn} disabled={pending}>
         {pending ? 'Đang chuyển hướng…' : 'Đăng nhập bằng Google'}
       </button>
     </main>

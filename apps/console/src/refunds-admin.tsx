@@ -55,33 +55,35 @@ export function RefundsAdmin({ session }: { session: ConsoleSession }) {
 
   return (
     <section className="console-screen refunds-admin" aria-label="Duyệt hoàn tiền">
-      <h1>Yêu cầu hoàn tiền</h1>
+      <h1 className="page-title">Yêu cầu hoàn tiền</h1>
       {error && (
         <p className="console-error" role="alert">
           {error}
         </p>
       )}
-      {requests.length === 0 && <p>Không có yêu cầu nào đang chờ.</p>}
-      <ul className="refund-list">
+      {requests.length === 0 && <p className="card text-center text-sm text-slate-500">Không có yêu cầu nào đang chờ.</p>}
+      <ul className="refund-list space-y-3">
         {requests.map((request) => (
-          <li key={request.id} className="refund-row">
-            <p>
-              <strong>{request.orderCode}</strong> — Bàn {request.tableNumber} — {formatVnd(request.amountMinor)}
+          <li key={request.id} className="refund-row card flex flex-wrap items-start gap-2">
+            <p className="w-full">
+              <strong className="font-mono">{request.orderCode}</strong> — Bàn {request.tableNumber} — {formatVnd(request.amountMinor)}
             </p>
-            <p>Lý do nhân viên: {request.reason}</p>
-            <button type="button" onClick={() => decide(request.id, 'approve')}>
+            <p className="w-full text-sm text-slate-600">Lý do nhân viên: {request.reason}</p>
+            <button type="button" className="btn-primary" onClick={() => decide(request.id, 'approve')}>
               Duyệt
             </button>
             {confirmingRejectId === request.id ? (
-              <div className="refund-reject-confirm">
-                <label htmlFor={`reject-confirm-${request.id}`}>Tôi xác nhận từ chối yêu cầu này</label>
+              <div className="refund-reject-confirm flex w-full flex-wrap items-center gap-2 rounded-lg bg-red-50 p-3">
                 <input
                   id={`reject-confirm-${request.id}`}
                   type="checkbox"
                   checked={rejectConfirmed}
                   onChange={(event) => setRejectConfirmed(event.target.checked)}
                 />
-                <button type="button" disabled={!rejectConfirmed} onClick={() => decide(request.id, 'reject')}>
+                <label htmlFor={`reject-confirm-${request.id}`} className="m-0 flex-1 text-red-800">
+                  Tôi xác nhận từ chối yêu cầu này
+                </label>
+                <button type="button" className="btn-danger" disabled={!rejectConfirmed} onClick={() => decide(request.id, 'reject')}>
                   Xác nhận từ chối
                 </button>
                 <button
@@ -95,7 +97,7 @@ export function RefundsAdmin({ session }: { session: ConsoleSession }) {
                 </button>
               </div>
             ) : (
-              <button type="button" onClick={() => setConfirmingRejectId(request.id)}>
+              <button type="button" className="btn-danger" onClick={() => setConfirmingRejectId(request.id)}>
                 Từ chối
               </button>
             )}
