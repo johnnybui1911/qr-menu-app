@@ -1,7 +1,7 @@
 ---
 title: "Phase 6: Auth Console, bootstrap & invitation"
 phase: 6
-status: todo
+status: completed
 priority: P1
 effort: 10h
 milestone: M3

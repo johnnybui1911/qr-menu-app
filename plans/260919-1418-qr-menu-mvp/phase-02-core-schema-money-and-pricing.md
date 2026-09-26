@@ -1,7 +1,7 @@
 ---
 title: "Phase 2: Schema nền, money & pricing"
 phase: 2
-status: todo
+status: completed
 priority: P1
 effort: 8h
 milestone: M1

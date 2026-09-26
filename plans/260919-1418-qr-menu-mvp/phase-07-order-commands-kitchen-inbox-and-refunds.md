@@ -1,7 +1,7 @@
 ---
 title: "Phase 7: Lệnh Console, kitchen inbox & refund"
 phase: 7
-status: todo
+status: completed
 priority: P1
 effort: 8h
 milestone: M3

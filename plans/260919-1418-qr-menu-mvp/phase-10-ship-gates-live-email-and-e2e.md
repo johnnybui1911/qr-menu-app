@@ -1,7 +1,7 @@
 ---
 title: "Phase 10: Cổng ship, email thật & e2e"
 phase: 10
-status: todo
+status: in-progress
 priority: P1
 effort: 8h
 milestone: M4
@@ -59,15 +59,16 @@ Priority P1 · M4 · phụ thuộc phase 5 (đối soát + outbox) và phase 9 (
 ## Architecture
 
 ```
-CI (pull_request + push main)
+CI (pull_request + push main + workflow_dispatch)
 ├── verify  (chặn merge — D14)
-│   1 npm ci
+│   1 npm ci + npx playwright install --with-deps chromium   (browser tier của npm test và e2e đều cần)
 │   2 npm run typecheck
 │   3 npm test                      (node + workerd + browser — gồm secret-scan, import-graph, hostname)
 │   4 npm run build:console         (gồm assert import-graph console)
 │   5 npm run build:storefront      (gồm assert import-graph storefront)
 │   6 npm run test:e2e              (1 spec luồng tiền, dev-sign thay PayFS)
-└── deploy  (needs: verify, chỉ main / workflow_dispatch)
+└── deploy  (needs: verify, CHỈ workflow_dispatch cho tới khi production được dựng — commit 56d0400;
+            thêm lại `|| github.ref == 'refs/heads/main'` sau khi có D1/R2, database_id, origin thật, secret)
     1 npm run db:migrate:remote     ← trước deploy, cancel-in-progress: false
     2 npm run deploy:storefront     ← trước console: console cần STOREFRONT_ORIGIN tồn tại
     3 npm run deploy:console
@@ -79,6 +80,7 @@ Smoke test tiền thật (một lần, tay — O7)
   → xác nhận: provider_events có row, đơn paid, email tới hộp Owner
   → gỡ URL webhook tạm, ghi lại kết quả vào docs/runbook-smoke-test.md
 ```
+<!-- Updated: Validation Session 1 - sơ đồ CI khớp .github/workflows/ci.yml sau commit 56d0400 -->
 
 Thứ tự deploy storefront-trước-console là **có chủ đích**: repo mẫu có mâu thuẫn giữa CI (console trước) và README (storefront trước); ở đây Console cần `STOREFRONT_ORIGIN` để dựng CORS allowlist và link QR, nên storefront phải tồn tại trước.
 
@@ -122,7 +124,7 @@ Thứ tự deploy storefront-trước-console là **có chủ đích**: repo m�
 |---|---|---|
 | A1 | e2e có tác dụng (quyết định #3) | Chạy spec với dev-sign `--secret` sai (worker trả 401, không `paid`) → spec **đỏ**. Không chạm code sản phẩm, không biến môi trường nào tắt được bước ghi nhận tiền |
 | A2 | Smoke test tiền thật (tay, một lần — O7) | Một chuyển khoản thật: `provider_events` có row với chữ ký hợp lệ, đơn `paid`, email tới hộp Owner. Ghi kết quả + ảnh chụp vào `docs/runbook-smoke-test.md` |
-| A3 | Migration production chạy sạch | `db:migrate:remote` trên D1 production trắng → đủ **5** migration (0001–0005), không lỗi; `wrangler d1 info` cho số bảng đúng (14 bảng nghiệp vụ + 5 bảng better-auth + `d1_migrations`) |
+| A3 | Migration production chạy sạch | `db:migrate:remote` trên D1 production trắng → đủ **5** migration (0001–0005), không lỗi; số bảng đúng: **23** = 14 bảng nghiệp vụ + 5 bảng better-auth + 3 bảng membership/bootstrap/lời mời (0004–0005) + `d1_migrations` <!-- Updated: Cook 2026-09-26 - bản cũ quên 3 bảng của 0004–0005 --> |
 
 ## Todo
 
@@ -135,7 +137,7 @@ Thứ tự deploy storefront-trước-console là **có chủ đích**: repo m�
 - [ ] Chốt O7: đăng ký PayFS + nối ngân hàng → ghi `transactions-sample.json`, cập nhật parser + T6 — **cần tài khoản PayFS + ngân hàng thật, ngoài khả năng phiên này**
 - [ ] A2 smoke test tiền thật qua `cloudflared`, rồi gỡ URL tạm — **chặn bởi O7**; `docs/runbook-smoke-test.md` đã viết sẵn quy trình, mục "Kết quả" còn trống chờ người có tài khoản PayFS chạy tay
 - [x] `docs/runbook-cutover.md` + `docs/runbook-smoke-test.md`
-- [ ] A3 migration production — **cần D1 production trắng + `CLOUDFLARE_API_TOKEN` thật, ngoài khả năng phiên này** (migration local đã chứng minh chạy sạch qua chính pipeline seed e2e — 5 migration, không lỗi, nhiều lần)
+- [x] A3 migration production — chạy 2026-09-26 bằng `npm run db:migrate:remote` từ máy đã `wrangler login`: 5/5 migration ✅, 23 bảng, `stores` có đúng row `store_default` <!-- Updated: Cook 2026-09-26 -->
 
 ## Regression gate
 
@@ -147,7 +149,7 @@ npm run typecheck && npm run test:workerd && npm run build:console && npm run bu
 
 ## Success criteria
 
-- [x] T1–T10 xanh (T6 để trống, chờ O7); A1 chứng minh e2e đỏ được; A2 và A3 chưa có bằng chứng (chặn bởi O7 và bởi thiếu D1 production thật)
+- [x] T1–T10 xanh (T6 để trống, chờ O7); A1 chứng minh e2e đỏ được; A3 đã chạy trên D1 production; A2 chưa có bằng chứng (chặn bởi O7)
 - [x] CI chặn merge bằng đủ 5 cổng, không `continue-on-error`
 - [ ] Email gửi thật tới hộp Owner **mà không** sửa logic phase 5 — chặn bởi O8 (chưa có domain Resend verified thật); cơ chế bật (biến môi trường) đã đúng theo D23, không sửa logic
 - [ ] Shape `/v1.1/transactions` đã xác nhận bằng response thật (fixture đã ẩn danh) — chặn bởi O7, để trống theo đúng chỉ đạo không giả định
@@ -184,8 +186,9 @@ npm run typecheck && npm run test:workerd && npm run build:console && npm run bu
 - **T8 dùng `git ls-files --cached --others --exclude-standard`** thay vì `git ls-files` trơn: repo trong môi trường thi công phiên này **chưa có commit nào** (`git log` báo "does not have any commits yet"), nên `git ls-files` một mình luôn trả rỗng — cờ `--others --exclude-standard` liệt kê đúng tập file sẽ nằm trong repo (tôn trọng `.gitignore`) bất kể đã commit hay chưa, nên test đúng cả ở đây lẫn ở CI thật (nơi mọi thứ đã được `actions/checkout`).
 - **T10 không tạo file trùng lặp với phase 5**: `tests/integration/email-outbox.test.ts` đã có `"keeps jobs untouched when email is not configured"` (thiếu `RESEND_FROM_ADDRESS`). `tests/integration/email-live-config.test.ts` (mới) chỉ thêm phần chưa có: thiếu **`OWNER_REPORT_EMAIL`** một mình, và assert đúng dòng log `email_not_configured`.
 - **T6 và fixture PayFS để trống theo đúng chỉ đạo** ("không giả định"): `tests/fixtures/payfs/transactions-sample.json` chưa tồn tại; `tests/node/secret-scan.test.ts` có sẵn hai test kiểm fixture này (không có chuỗi ≥8 chữ số, mọi `content` là mã `QM…`) nhưng tự `skipIf` khi file chưa tồn tại, kèm một test tường minh ghi lại lý do — sẽ tự kích hoạt khi ai đó thêm fixture thật.
-- **CI**: job `verify` giữ nguyên bước `test:artifacts` (kiểm tra `apps/console/dist/qr_menu_app/wrangler.json` sau `build:console` — không nằm trong 5 cổng D14 nhưng là gate build-output có thật, không phải scope creep của phase này) ở đúng vị trí cũ (giữa `build:console` và `build:storefront`) — không phá thứ tự 5 cổng D14 mà `tests/node/ci-config.test.ts` kiểm; thêm bước `npx playwright install --with-deps chromium` ngay trước `npm run test:e2e`.
-- **Việc cần user, chưa làm được** (đúng 3 mục Todo còn mở, đều phụ thuộc ngoài repo — O7/O8/A2/A3/quét QR ngân hàng thật): đăng ký PayFS + nối ngân hàng thật (O7 — chặn A2, T6, và fixture PayFS); verify domain Resend + `OWNER_REPORT_EMAIL` + giờ chốt ngày (O8 — chặn bước bật email thật); D1 production trắng + `CLOUDFLARE_API_TOKEN` thật để chạy A3; quét QR bằng app ngân hàng thật (cần đơn thật + app ngân hàng, gộp vào quy trình A2 trong `docs/runbook-smoke-test.md`). Không mục nào trong số này chặn được kỹ thuật của các mục còn lại — đúng như "Risks" của phase đã lường trước.
+- **CI**: job `verify` giữ nguyên bước `test:artifacts` (kiểm tra `apps/console/dist/qr_menu_app/wrangler.json` sau `build:console` — không nằm trong 5 cổng D14 nhưng là gate build-output có thật, không phải scope creep của phase này) ở đúng vị trí cũ (giữa `build:console` và `build:storefront`) — không phá thứ tự 5 cổng D14 mà `tests/node/ci-config.test.ts` kiểm. Bước `npx playwright install --with-deps chromium` ban đầu đặt ngay trước `npm run test:e2e`; CI run đầu tiên đỏ vì tầng browser của `npm test` cũng cần Chromium → commit 56d0400 dời bước này lên ngay sau `npm ci`, đồng thời chuyển job `deploy` sang chỉ chạy tay (`workflow_dispatch`) cho tới khi production được dựng. <!-- Updated: Validation Session 1 - khớp ci.yml hiện tại -->
+- **Việc cần user, chưa làm được** (phụ thuộc ngoài repo — O7/O8/A2/quét QR ngân hàng thật): đăng ký PayFS + nối ngân hàng thật (O7 — chặn A2, T6, và fixture PayFS); verify domain Resend + `OWNER_REPORT_EMAIL` + giờ chốt ngày (O8 — chặn bước bật email thật); quét QR bằng app ngân hàng thật (cần đơn thật + app ngân hàng, gộp vào quy trình A2 trong `docs/runbook-smoke-test.md`). A3 đã xong 2026-09-26 (xem Todo). Không mục nào trong số này chặn được kỹ thuật của các mục còn lại — đúng như "Risks" của phase đã lường trước.
+- **Origin production tiêm lúc deploy (2026-09-26, có tư vấn kongming):** `docs/next-steps-go-live.md` 6.1 và `runbook-cutover.md` bước 5 từng bảo sửa `vars` trong `wrangler.jsonc` sang origin thật — làm vậy sẽ vỡ cổng e2e (harness chạy trên `127.0.0.1` với `vars` đó, `.dev.vars.e2e` không có origin → Console `origin_denied`, CORS storefront chặn) và vỡ dev local, lại đưa hostname vào repo công khai. Thay bằng `scripts/deploy-worker.ts`: `npm run deploy:*` đọc `CONSOLE_ORIGIN`/`STOREFRONT_ORIGIN` từ môi trường (CI: repository variables, đã đặt), kiểm bằng `scripts/deploy-origins.ts` (bắt buộc `https`, bare origin, không loopback, hai origin khác nhau — `tests/node/deploy-origins.test.ts`), build storefront với `VITE_STOREFRONT_API_BASE_URL = CONSOLE_ORIGIN`, deploy Console với `wrangler deploy --var`. `--dry-run` xác nhận mỗi biến chỉ còn một binding, DB/FILES giữ nguyên. Chuỗi `run:` trong `ci.yml` giữ nguyên (T5 so khớp đúng chuỗi); job `deploy` chỉ chạy khi `workflow_dispatch` **trên `main`**. <!-- Updated: Cook 2026-09-26 -->
 
 ## Next
 

@@ -1,7 +1,7 @@
 ---
 title: "Phase 1: Skeleton & test harness"
 phase: 1
-status: todo
+status: completed
 priority: P1
 effort: 6h
 milestone: M0
@@ -126,7 +126,7 @@ T8/T9 là bài test rẻ nhất chứng minh hai giả định nguy hiểm nhấ
 
 - [x] T1–T9 viết trước và đỏ
 - [x] 6 workspace `package.json` + `tsconfig.json` + cài dependency
-- [ ] Tạo D1 + R2, viết `wrangler.jsonc` root và storefront
+- [x] Tạo D1 + R2, viết `wrangler.jsonc` root và storefront — D1 `qr-menu-app-db` tạo 2026-09-26, `database_id` đã ghi; R2 bucket `qr-menu-app-files` tạo 2026-09-26 sau khi chủ tài khoản bật R2 (khi `r2 bucket create` hỏi có sửa config không thì chọn "no" — binding `FILES` đã có sẵn) <!-- Updated: Cook 2026-09-26 -->
 - [x] `vitest.config.ts` + `vitest.node.config.ts` + `tests/support/test-env.ts`
 - [x] `scripts/assert-production-import-graph.ts` + plugin thu thập cho **cả hai** app
 - [x] `apps/worker/src/index.ts` shell + hai `vite.config.ts` + `main.tsx` tối thiểu
@@ -171,7 +171,7 @@ Lệch so với plan, đã kiểm bằng test:
 - `compatibility_date` = `2026-08-15`: không được vượt workerd đi kèm `@cloudflare/vitest-pool-workers@0.22.0`. `vitest.config.ts` đọc root `wrangler.jsonc` qua `wrangler.configPath` nên ngày chỉ nằm ở **hai** file wrangler; T7 kiểm `configPath` thay vì chữ thứ ba. Nâng pool-workers thì nâng ngày theo.
 - Lớp "resolve dependency" của D3 **không tự có** dưới npm workspaces (mọi `@qr/*` đều được hoist). Plugin `productionImportGraph` thêm `resolveId` từ chối `@qr/*` không khai trong `package.json` của app. Console bị cấm mọi `packages/` trừ `catalog`.
 - Graph ghi module ở `moduleParsed`, không ở `generateBundle`: rolldown inline hằng số đến mức module biến khỏi `output.modules`, nên import tương đối một hằng từ `packages/` lọt cả hai lớp. Đã tái hiện và chặn.
-- `database_id` bỏ trống (Wrangler chưa đăng nhập). Deploy job giữ thứ tự migrate → code; **tiền điều kiện**: `wrangler d1 create qr-menu-app-db` + `wrangler r2 bucket create qr-menu-app-files` chạy một lần (mục Todo còn mở).
+- `database_id` bỏ trống lúc thi công (Wrangler chưa đăng nhập). **Cập nhật 2026-09-26:** D1 production đã tạo, `database_id` đã ghi vào `wrangler.jsonc` (không phải secret; ghi cố định để deploy/migrate không phụ thuộc cơ chế tự provision của wrangler). Lưu ý: có `database_id` thì khoá DB local đổi theo — ai có `.wrangler/state` cũ phải `npm run db:migrate:local` lại. `wrangler d1 create --update-config` viết lại cả `wrangler.jsonc` và làm mất chú thích — đã sửa tay. R2 bucket `qr-menu-app-files` đã tạo cùng ngày.
 - `.npmrc` ghim registry công khai: mirror npm nội bộ của công ty không truy cập được từ mạng này và từ GitHub Actions. Cần chủ quản chính sách registry xác nhận trước khi merge.
 - `vars` có sẵn `PAYFS_API_BASE`, `RESEND_API_BASE` (C10/T6).
 

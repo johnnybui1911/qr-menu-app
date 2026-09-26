@@ -1,7 +1,7 @@
 ---
 title: "Phase 3: Đặt đơn server-authoritative & VietQR"
 phase: 3
-status: todo
+status: completed
 priority: P1
 effort: 8h
 milestone: M1

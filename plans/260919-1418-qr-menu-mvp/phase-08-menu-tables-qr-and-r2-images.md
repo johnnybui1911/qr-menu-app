@@ -1,7 +1,7 @@
 ---
 title: "Phase 8: Menu, bàn/QR & ảnh R2"
 phase: 8
-status: todo
+status: completed
 priority: P1
 effort: 10h
 milestone: M3

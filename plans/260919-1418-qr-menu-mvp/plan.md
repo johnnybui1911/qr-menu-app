@@ -56,16 +56,18 @@ Những quy ước sau là **biên giới chung**; phase nào vi phạm là phas
 
 | # | Phase | Mốc | Phụ thuộc | Status |
 |---|-------|-----|-----------|--------|
-| 1 | [Skeleton & test harness](./phase-01-skeleton-and-test-harness.md) | M0 | — | Pending |
-| 2 | [Schema nền, money & pricing](./phase-02-core-schema-money-and-pricing.md) | M1 | 1 | Pending |
-| 3 | [Đặt đơn server-authoritative & VietQR](./phase-03-order-placement-and-vietqr.md) | M1 | 2 | Pending |
-| 4 | [Webhook PayFS & chuyển `paid`](./phase-04-payfs-webhook-and-paid-transition.md) | M1–M2 | 3 | Pending |
-| 5 | [Đối soát & email outbox](./phase-05-reconciliation-and-email-outbox.md) | M2 | 4 | Pending |
-| 6 | [Auth Console, bootstrap & invitation](./phase-06-console-auth-bootstrap-and-invitations.md) | M3 | 2 | Pending |
-| 7 | [Lệnh Console, kitchen inbox & refund](./phase-07-order-commands-kitchen-inbox-and-refunds.md) | M3 | 4, 5, 6 | Pending |
-| 8 | [Menu, bàn/QR & ảnh R2](./phase-08-menu-tables-qr-and-r2-images.md) | M3 | 6 | Pending |
-| 9 | [UI Storefront & Console](./phase-09-storefront-and-console-ui.md) | M3 | 3, 7, 8 | Pending |
-| 10 | [Cổng ship, email thật & e2e](./phase-10-ship-gates-live-email-and-e2e.md) | M4 | 5, 9 | Pending |
+| 1 | [Skeleton & test harness](./phase-01-skeleton-and-test-harness.md) | M0 | — | Completed — D1 production (đã migrate) + R2 bucket đã tạo |
+| 2 | [Schema nền, money & pricing](./phase-02-core-schema-money-and-pricing.md) | M1 | 1 | Completed |
+| 3 | [Đặt đơn server-authoritative & VietQR](./phase-03-order-placement-and-vietqr.md) | M1 | 2 | Completed |
+| 4 | [Webhook PayFS & chuyển `paid`](./phase-04-payfs-webhook-and-paid-transition.md) | M1–M2 | 3 | Completed |
+| 5 | [Đối soát & email outbox](./phase-05-reconciliation-and-email-outbox.md) | M2 | 4 | In progress — code xong; còn chạy thử với Resend chế độ test |
+| 6 | [Auth Console, bootstrap & invitation](./phase-06-console-auth-bootstrap-and-invitations.md) | M3 | 2 | Completed |
+| 7 | [Lệnh Console, kitchen inbox & refund](./phase-07-order-commands-kitchen-inbox-and-refunds.md) | M3 | 4, 5, 6 | Completed |
+| 8 | [Menu, bàn/QR & ảnh R2](./phase-08-menu-tables-qr-and-r2-images.md) | M3 | 6 | Completed |
+| 9 | [UI Storefront & Console](./phase-09-storefront-and-console-ui.md) | M3 | 3, 7, 8 | Completed — ảnh A2 ở [`reports/a2-evidence/`](./reports/a2-evidence/README.md) |
+| 10 | [Cổng ship, email thật & e2e](./phase-10-ship-gates-live-email-and-e2e.md) | M4 | 5, 9 | In progress — cổng CI + e2e + A3 xong; còn O7, O8, A2 tiền thật, quét QR bằng app ngân hàng |
+
+Mọi mục còn mở đều cần tài khoản/hạ tầng thật, không còn việc code nào trong repo. Các bước thực hiện nằm ở [`docs/next-steps-go-live.md`](../../docs/next-steps-go-live.md).
 
 Hai nhánh song song hợp lệ sau khi phase 2 xanh (phương án C của brainstorm): **nhánh tiền** 3 → 4 → 5 và **nhánh quản trị** 6 → 8. Chúng chỉ gặp nhau ở `apps/worker/src/index.ts` (bảng route) và `migrations/` — áp C13 khi chạy song song.
 
@@ -84,21 +86,23 @@ Khai báo để chạy song song không đụng nhau. Ngoài danh sách của m�
 | 7 | `packages/orders/src/{refunds,command-ledger,kitchen-inbox}.ts`, `packages/orders/src/commands/order-commands.ts`, `apps/worker/src/{console-order-routes,console-refund-routes,console-provider-event-routes,console-report-routes}.ts` |
 | 8 | `packages/catalog/src/{catalog-write,tables-write}.ts`, `packages/catalog/src/files/product-image.ts`, `apps/worker/src/{console-catalog-routes,console-table-routes,storefront-product-image-routes}.ts` |
 | 9 | `apps/storefront/src/**`, `apps/console/src/**`, `vitest.browser.config.ts`, `tests/browser/**`, `tests/fixtures/vietqr/**` |
-| 10 | `.github/workflows/**`, `tests/e2e/**`, `playwright.config.ts`, `scripts/e2e-seed.ts`, `docs/runbook-cutover.md`, `docs/runbook-smoke-test.md` |
+| 10 | `.github/workflows/**`, `tests/e2e/**`, `playwright.config.ts`, `scripts/e2e-seed.ts`, `scripts/deploy-{worker,origins}.ts` (thêm khi cook 2026-09-26), `docs/runbook-cutover.md`, `docs/runbook-smoke-test.md` |
 
 ## Success Criteria
 
-- [ ] `npm run typecheck && npm test && npm run build:console && npm run build:storefront` xanh, và 1 e2e luồng tiền xanh — cả 5 cổng chặn merge trong CI (D14). `npm test` gồm ba tầng: `tests/node/**` (gate import-graph, hostname, secret-scan), `tests/unit+integration/**` (workerd + D1 thật), `tests/browser/**`
-- [ ] 7 test bắt buộc tồn tại và xanh: tổng tiền server-authoritative · snapshot giá · idempotency 3 tầng · chuyển trạng thái trái phép 409 không side effect · phân quyền Staff/Owner · test vector chữ ký PayFS `86f02cef…c5e` · regex đối soát chạy trên `payment_reference` **do code sinh** với `content` có rác ngân hàng bao quanh
-- [ ] Script tự ký payload bắn vào worker local làm đơn chuyển `paid`, không cần mạng, chạy được trong CI (D22)
-- [ ] Cron `*/1` đối soát: đơn quá 2 phút được cứu bằng `/v1.1/transactions`, quá 15 phút gắn `needs_attention`, quá 30 phút `cancelled`; tiền về sau khi `cancelled` **không** hồi sinh đơn
-- [ ] Job email chạy đủ vòng enqueue → claim → gửi → retire với backoff mũ; enqueue nằm trong **cùng** batch với chuyển trạng thái
-- [ ] Bootstrap Owner lần hai bị từ chối; user Google lạ bị từ chối; token mời hết hạn/dùng lại bị từ chối với thông báo **giống hệt nhau**
-- [ ] Staff không sửa được menu và không duyệt được refund; Owner duyệt refund chỉ ghi nhận trạng thái, không có side effect chuyển tiền (O4)
-- [ ] Xoay QR bàn: token mới hiện đúng một lần, token cũ còn sống đúng 15 phút (D17)
-- [ ] Bếp thấy đơn mới trong ≤3 giây bằng polling cursor `since` + ETag (D7)
-- [ ] Gate import-graph phủ **cả** Console lẫn Storefront; không còn hostname literal trong source/build input (D3, D21)
-- [ ] `git grep` không tìm thấy secret nào trong repo; mọi secret nạp bằng `wrangler secret put` (D16)
+- [x] `npm run typecheck && npm test && npm run build:console && npm run build:storefront` xanh, và 1 e2e luồng tiền xanh — cả 5 cổng chặn merge trong CI (D14). `npm test` gồm ba tầng: `tests/node/**` (gate import-graph, hostname, secret-scan), `tests/unit+integration/**` (workerd + D1 thật), `tests/browser/**` — CI run 36237078854 trên `main`; chạy lại trên máy 2026-09-26: node 57 + 2 skip (chờ O7), workerd 294, browser 27, e2e 1
+- [x] 7 test bắt buộc tồn tại và xanh: tổng tiền server-authoritative · snapshot giá · idempotency 3 tầng · chuyển trạng thái trái phép 409 không side effect · phân quyền Staff/Owner · test vector chữ ký PayFS `86f02cef…c5e` · regex đối soát chạy trên `payment_reference` **do code sinh** với `content` có rác ngân hàng bao quanh
+- [x] Script tự ký payload bắn vào worker local làm đơn chuyển `paid`, không cần mạng, chạy được trong CI (D22) — e2e `tests/e2e/money-flow.spec.ts`
+- [x] Cron `*/1` đối soát: đơn quá 2 phút được cứu bằng `/v1.1/transactions`, quá 15 phút gắn `needs_attention`, quá 30 phút `cancelled`; tiền về sau khi `cancelled` **không** hồi sinh đơn — kiểm trên stub; shape response thật của `/v1.1/transactions` còn chờ O7
+- [x] Job email chạy đủ vòng enqueue → claim → gửi → retire với backoff mũ; enqueue nằm trong **cùng** batch với chuyển trạng thái — kiểm trên stub cùng hợp đồng HTTP; gửi Resend thật còn chờ O8
+- [x] Bootstrap Owner lần hai bị từ chối; user Google lạ bị từ chối; token mời hết hạn/dùng lại bị từ chối với thông báo **giống hệt nhau**
+- [x] Staff không sửa được menu và không duyệt được refund; Owner duyệt refund chỉ ghi nhận trạng thái, không có side effect chuyển tiền (O4)
+- [x] Xoay QR bàn: token mới hiện đúng một lần, token cũ còn sống đúng 15 phút (D17)
+- [x] Bếp thấy đơn mới trong ≤3 giây bằng polling cursor `since` + ETag (D7) — e2e đo 2,3–2,8 s từ lúc webhook trả 200
+- [x] Gate import-graph phủ **cả** Console lẫn Storefront; không còn hostname literal trong source/build input (D3, D21)
+- [x] `git grep` không tìm thấy secret nào trong repo; mọi secret nạp bằng `wrangler secret put` (D16) — `tests/node/secret-scan.test.ts`
+
+<!-- Updated: Validation Session 1 - status phase và success criteria đồng bộ với code, commit 4cf5731..08f6523 -->
 
 ## Rủi ro & cách chặn
 
@@ -174,5 +178,59 @@ Sau khi sửa 13 blocker, một vòng soi nữa bắt thêm những chỗ **plan
 **Tài khoản/hạ tầng cần có từ phase 1:** Cloudflare account (D1 + R2 + Workers), Google Cloud OAuth client (phase 6), Resend API key chế độ test (phase 5).
 
 **Tài liệu nền:** [PRD](../../docs/PRD.md) · [Decision Record](../../docs/decisions/260919-post-xia-decision-record.md) · [Xia report](../reports/260919-xia-nexus-handson-reference.md) · [Brainstorm build approach](../reports/260919-brainstorm-build-approach.md) · [Decisions locked](../reports/260919-brainstorm-decisions-locked.md) · [Pattern repo mẫu](../../docs/reference/nexus/00-index.md) · scout reports trong [`./reports/`](./reports/)
+
+## Validation Log
+
+### Session 1 — 2026-09-26: đồng bộ status với code
+
+Lý do: `plan.md` ghi mọi phase `Pending`, mọi phase file ghi `status: todo` (không phải giá trị hợp lệ `pending | in-progress | completed`), 11 success criteria đều chưa tick — trong khi commit `4cf5731` đã cài phase 1–10 và CI xanh.
+
+**Bằng chứng từ code** (chạy lại trên máy, không chỉ dựa vào ghi chú):
+- `npm run typecheck` sạch · `npm test`: node 57 pass + 2 skip (fixture `transactions-sample.json` chờ O7), workerd 294/294, browser 27/27 · `build:console` + gate import-graph (13 module) · `test:artifacts` 2/2 · `build:storefront` + gate import-graph (14 module) · `test:e2e` 1/1 (bếp thấy đơn 2807 ms sau webhook 200).
+- Mọi file khai trong "Files to create" của 10 phase đều có trong repo, trừ `tests/fixtures/payfs/transactions-sample.json` (chờ O7, đúng như phase 10 ghi).
+
+### Verification Results
+- Claims checked: 10 status phase + 11 success criteria + ~120 đường dẫn file + 2 mô tả CI
+- Verified: tất cả trừ các mục dưới | Failed: 3 (đã sửa) | Unverified: 0
+- Tier: Full (10 phase)
+- Failures:
+  1. Status phase ở `plan.md` và frontmatter lệch với code → đã sửa theo checkbox.
+  2. Phase 10 Architecture ghi deploy chạy "chỉ main / workflow_dispatch" — `.github/workflows/ci.yml:37` giờ chỉ `workflow_dispatch` (commit `56d0400`) → đã sửa.
+  3. Phase 10 "Ghi chú thi công" ghi `playwright install` đứng ngay trước `test:e2e` — `ci.yml:24` giờ đứng ngay sau `npm ci` → đã sửa.
+
+### Quyết định (người dùng xác nhận)
+1. Status suy từ checkbox: phase 2, 3, 4, 6, 7, 8 → `completed`; phase 1, 5, 9, 10 → `in-progress` vì còn mục mở phụ thuộc bên ngoài; plan giữ `in-progress`.
+2. Phase 5: đóng `EMAIL_LINK_HMAC_SECRET` (quyết định không cần) và "T1–T18 viết trước và đỏ" (bù bằng mutation check), kèm ghi chú.
+3. Phase 10: sửa sơ đồ CI và ghi chú CI cho khớp `ci.yml`.
+
+### Mục còn mở (đều cần tài khoản/hạ tầng thật)
+| Phase | Mục | Chặn bởi |
+|---|---|---|
+| 1 | Tạo D1 + R2, điền `database_id` | `wrangler login` |
+| 5 | Email job với Resend chế độ test | `RESEND_API_KEY` thật |
+| 6 | Bằng chứng tay đăng nhập Google thật (Regression gate, không phải checkbox) | OAuth client thật |
+| 9 | Ảnh chụp A2 trong PR | — (A2 đã kiểm tay) |
+| 10 | O7, O8, A2 tiền thật, A3 migration production, quét QR bằng app ngân hàng | PayFS, Resend, D1 production |
+
+### Whole-Plan Consistency Sweep
+- Đã đọc lại bảng phase, success criteria, frontmatter 10 phase, Todo/Success criteria của phase 1, 5, 9, 10: không còn mâu thuẫn status.
+- Còn một chỗ lệch **ngoài plan**, chưa sửa: comment ở `wrangler.jsonc:15` ghi "Wrangler provisions the database on first deploy", trái với `ci.yml:50-51`, `docs/runbook-cutover.md:24-25` và phase 1 (D1/R2 phải tạo tay một lần). `docs/next-steps-go-live.md` bước 3 đã hướng dẫn xoá comment này khi điền `database_id`. → **Đã sửa khi cook 2026-09-26** (xem mục dưới).
+- Ghi chú lịch sử "repo chưa có commit nào" (phase 10, T8) giữ nguyên: đúng tại thời điểm viết, và lý do chọn `git ls-files --others` vẫn đúng.
+
+### Cook 2026-09-26 (`/ak:cook --advice`, kongming same-model — host không pin được Fable)
+
+Làm được mà không cần tài khoản mới (wrangler đã `login`, `gh` đã auth):
+- **Phase 1 / phase 10 A3:** tạo D1 `qr-menu-app-db`, ghi `database_id` vào `wrangler.jsonc` (sửa luôn chú thích sai "Wrangler provisions the database on first deploy"), `npm run db:migrate:remote` → 5/5 migration, 23 bảng. Từ đây `0001`–`0005` bị khoá theo C13. R2 **không** tạo được: tài khoản chưa bật R2 (`10042`).
+- **Phase 9 A2:** ảnh chụp lấy từ screencast của trace Playwright chạy thật (`[T2]` 2590 ms) → `reports/a2-evidence/`. Phase 9 → completed.
+- **Lỗi thật trong tài liệu go-live:** `docs/next-steps-go-live.md` 6.1 và `runbook-cutover.md` bước 5 bảo sửa `vars` origin trong `wrangler.jsonc` → sẽ vỡ cổng e2e + dev local và đưa hostname vào repo công khai. Kongming đọc mã wrangler 4.141.0 và xác nhận `--var` ghi đè binding cùng tên. Đổi sang tiêm lúc deploy: `scripts/deploy-worker.ts` + `scripts/deploy-origins.ts` (guard, `tests/node/deploy-origins.test.ts`); `deploy:*` gọi script này; `ci.yml` job `deploy` lấy `vars.CONSOLE_ORIGIN`/`vars.STOREFRONT_ORIGIN`, chỉ chạy `workflow_dispatch` trên `main`. Đã đặt repository variables `CONSOLE_ORIGIN`, `STOREFRONT_ORIGIN` và secret `CLOUDFLARE_ACCOUNT_ID`. Sửa `runbook-cutover.md`, `runbook-oauth.md` (từng nhắc `env.production` không tồn tại), `next-steps-go-live.md`.
+- **Sai số liệu A3:** runbook và phase 10 ghi "14 + 5 + `d1_migrations`" (20 bảng), thực tế 23 — thiếu 3 bảng của 0004–0005. Đã sửa cả hai.
+
+Còn mở — cần chủ tài khoản: Google OAuth client + đăng nhập thật (phase 6 regression gate), secret production, Resend (phase 5, O8), PayFS + ngân hàng (O7, T6), smoke tiền thật + quét QR (phase 10 A2), xác nhận chính sách registry `.npmrc` (phase 1).
+
+Cập nhật cùng ngày, sau khi chủ tài khoản bật R2 và nạp `CLOUDFLARE_API_TOKEN`:
+- Tạo R2 bucket `qr-menu-app-files`. Phase 1 → completed.
+- A3: chạy migrate vào một D1 local trắng rồi liệt kê bảng được đúng 23 bảng giống remote. Đếm `CREATE TABLE` trong migrations: 9 + 5 + 5 + 1 + 2 = 22, cộng `d1_migrations` là 23. Vậy remote không bị drift; con số 20 cũ là sai.
+- Guard deploy: gọi thẳng `tsx scripts/deploy-worker.ts console` (thiếu origin) → exit 1; `npm run deploy:console` (thiếu origin) → exit 1; `npm run deploy:storefront` với origin loopback → exit 1. Cả ba không in dòng build nào. Lần kiểm trước in `exit=0` là do exit code của pipe `grep | head`, không phải của script.
+- `CLOUDFLARE_API_TOKEN` chỉ kiểm được khi job `deploy` chạy thật, mà job này chỉ lấy code từ `main` → cần commit + push trước.
 
 <!-- slug: qr-menu-mvp -->

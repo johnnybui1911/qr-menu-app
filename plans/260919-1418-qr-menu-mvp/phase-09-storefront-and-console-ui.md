@@ -1,7 +1,7 @@
 ---
 title: "Phase 9: UI Storefront & Console"
 phase: 9
-status: todo
+status: completed
 priority: P1
 effort: 12h
 milestone: M3
@@ -164,7 +164,7 @@ Build phải xanh vì gate import-graph chạy trong `build:*` — đây là ch�
 
 ## Success criteria
 
-- [ ] T1–T23, A1–A3 xanh (A2 có ảnh chụp trong PR)
+- [x] T1–T23, A1–A3 xanh (A2 có ảnh chụp trong PR) — repo commit thẳng lên `main`, không có PR; ảnh A2 lưu tại [`reports/a2-evidence/`](./reports/a2-evidence/README.md) <!-- Updated: Cook 2026-09-26 - ảnh A2 từ trace Playwright -->
 - [x] Đơn mới xuất hiện trên màn bếp trong ≤3 giây (D7)
 - [x] Token bàn/đơn/mời không bao giờ nằm trong URL hiển thị, `localStorage`, hay log
 - [x] Bấm đặt món nhiều lần / mất mạng rồi thử lại → đúng một đơn

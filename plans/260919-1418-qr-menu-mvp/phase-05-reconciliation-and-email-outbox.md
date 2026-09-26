@@ -1,7 +1,7 @@
 ---
 title: "Phase 5: Đối soát & email outbox"
 phase: 5
-status: todo
+status: in-progress
 priority: P1
 effort: 6h
 milestone: M2
@@ -49,7 +49,7 @@ Hết phase này, M2 xong: luồng tiền bền vững với webhook rơi, worke
 - [x] Khớp được → gọi **`settleCredit`** của phase 4 (cùng batch, cùng idempotency, cùng `fingerprintFacts`), không viết đường ghi nhận tiền thứ hai
 - [x] Tiền về cho đơn đã `cancelled` → `provider_events` row `outcome='unmatched_payment'`, đơn **không** đổi trạng thái
 - [x] `order_email_jobs`: claim conditional UPDATE (`attempts+1`, `available_at = now + backoff`), backoff `min(1h, 5m × 2^(attempts-1))`, retire khi `attempts >= 8`, gửi Resend kèm `Idempotency-Key: job.id`
-- [ ] Secret HMAC của link trong email là biến **riêng** `EMAIL_LINK_HMAC_SECRET`, không dùng `RESEND_API_KEY` (R5, C11)
+- [x] Secret HMAC của link trong email là biến **riêng** `EMAIL_LINK_HMAC_SECRET`, không dùng `RESEND_API_KEY` (R5, C11) — đóng theo quyết định thi công: không email nào có link cần ký, nên không đọc biến này; tên biến giữ trong C11 cho khi cần (xem "Ghi chú thi công") <!-- Updated: Validation Session 1 - đóng theo quyết định đã ghi -->
 - [x] Cron `*/1` và `*/5` không bao giờ chạy chồng job của nhau
 
 ## Architecture
@@ -136,7 +136,7 @@ scheduled(controller, env)
 
 ## Todo
 
-- [ ] T1–T18 (gồm T7b) viết trước và đỏ
+- [x] T1–T18 (gồm T7b) viết trước và đỏ — test outbox/báo cáo/parser chạy đỏ trước; test đối soát không chạy đỏ trước, bù bằng mutation check (T7b, T8, T11/T12 đỏ khi bỏ guard — xem "Ghi chú thi công") <!-- Updated: Validation Session 1 - đóng kèm ghi chú -->
 - [x] `query-transactions.ts` (parser trước, fetch sau)
 - [x] `email-outbox.ts` + `nextAvailableAt`
 - [x] `revenue-report.ts`
