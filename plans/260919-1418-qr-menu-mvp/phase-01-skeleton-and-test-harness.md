@@ -148,7 +148,7 @@ Phải xanh trên máy sạch (`rm -rf node_modules && npm ci`). Thêm kiểm tr
 - [x] Storefront import `@qr/*` → build đỏ ở **hai** lớp: resolve dependency và gate import-graph
 - [x] `resetDb()` chạy được trong `beforeEach` mà không rò dữ liệu giữa test, và **không** cần sửa khi phase sau thêm bảng
 - [x] Không hostname literal, không tên tài nguyên D1/R2 nằm trong `src/` hay test
-- [ ] CI `verify` xanh trên PR đầu tiên
+- [x] CI `verify` xanh trên PR đầu tiên (run 36237078854 trên `main`, 2026-09-26: đủ 5 cổng gồm e2e; lần chạy đầu đỏ vì cài Chromium sau `npm test` — đã sửa)
 
 ## Risks
 
