@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { apiGet, apiSend, isErrorBody, type ConsoleSession } from './api-client.ts';
 
+/** Stable ref callback: moves focus into the dialog once, on open, so keyboard users start inside it (the page behind is `inert`). */
+function focusOnMount(node: HTMLElement | null): void {
+  node?.focus();
+}
+
 type Invitation = { id: string; targetEmail: string; role: 'owner' | 'staff'; status: 'pending' | 'revoked' | 'consumed'; expiresAt: string; createdAt: string };
 
 const INVITE_ERROR_MESSAGE: Record<string, string> = {
@@ -77,7 +82,7 @@ export function StaffAdmin({ session }: { session: ConsoleSession }) {
       )}
       {newInvitationUrl && <div className="dialog-backdrop" aria-hidden="true" />}
       {newInvitationUrl && (
-        <div role="dialog" aria-label="Lời mời đã tạo" className="invitation-dialog">
+        <div role="dialog" aria-modal="true" aria-label="Lời mời đã tạo" className="invitation-dialog" tabIndex={-1} ref={focusOnMount}>
           <p className="text-sm font-medium">Gửi đường dẫn này cho nhân viên (chỉ hiện một lần):</p>
           <p className="invitation-url">{newInvitationUrl}</p>
           <button type="button" className="w-full" onClick={() => setNewInvitationUrl(null)}>
@@ -85,7 +90,7 @@ export function StaffAdmin({ session }: { session: ConsoleSession }) {
           </button>
         </div>
       )}
-      <div className="staff-invite-form card mb-6 grid gap-x-3 sm:grid-cols-[1fr_12rem_auto] sm:items-end">
+      <div className="staff-invite-form card mb-6 grid gap-x-3 sm:grid-cols-[1fr_12rem_auto] sm:items-end" inert={newInvitationUrl !== null}>
         <div>
           <label htmlFor="invite-email">Email nhân viên</label>
           <input id="invite-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
@@ -102,7 +107,7 @@ export function StaffAdmin({ session }: { session: ConsoleSession }) {
         </button>
       </div>
       <h2 className="section-title">Lời mời đang chờ</h2>
-      <ul className="invitation-list card divide-y divide-slate-100 p-0 empty:hidden">
+      <ul className="invitation-list card divide-y divide-slate-100 p-0 empty:hidden" inert={newInvitationUrl !== null}>
         {invitations.map((invitation) => (
           <li key={invitation.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm [overflow-wrap:anywhere]">
             {invitation.targetEmail} — {invitation.role === 'owner' ? 'Chủ quán' : 'Nhân viên'} — {invitation.status}

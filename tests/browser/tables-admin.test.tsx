@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import { TablesAdmin } from '../../apps/console/src/tables-admin.tsx';
 import type { ConsoleSession } from '../../apps/console/src/api-client.ts';
@@ -40,5 +41,22 @@ describe('TablesAdmin', () => {
     expect(screen.container.textContent).not.toContain('SECRETTOKEN123');
     // No control anywhere re-opens the token that was just discarded.
     expect(screen.getByRole('button', { name: 'Xem lại QR' }).query()).toBeNull();
+  });
+
+  it('while the one-time QR is open, the keyboard cannot reach "Tắt bàn" or "Xuất QR" behind it', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    fetchMock.mockResolvedValueOnce(jsonResponse(TABLES));
+    const screen = await render(<TablesAdmin session={OWNER_SESSION} />);
+    await expect.element(screen.getByText('Bàn 5')).toBeInTheDocument();
+
+    const behind = [screen.getByRole('button', { name: 'Tắt bàn' }).element(), screen.getByRole('button', { name: 'Xuất QR — Bàn 5' }).element()];
+    fetchMock.mockResolvedValueOnce(jsonResponse(QR_RESULT));
+    await screen.getByRole('button', { name: 'Xuất QR — Bàn 5' }).click();
+    await expect.element(screen.getByRole('dialog', { name: 'QR bàn 5' })).toHaveFocus();
+
+    for (let press = 0; press < 6; press += 1) {
+      await userEvent.tab();
+      expect(behind).not.toContain(document.activeElement);
+    }
   });
 });

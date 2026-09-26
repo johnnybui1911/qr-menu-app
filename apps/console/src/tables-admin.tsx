@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { apiGet, apiSend, isErrorBody, type ConsoleSession } from './api-client.ts';
 
+/** Stable ref callback: moves focus into the dialog once, on open, so keyboard users start inside it (the page behind is `inert`). */
+function focusOnMount(node: HTMLElement | null): void {
+  node?.focus();
+}
+
 type ConsoleTable = { id: string; tableNumber: string; isActive: boolean; liveTokens: number };
 
 const WRITE_ERROR_MESSAGE: Record<string, string> = {
@@ -85,7 +90,7 @@ export function TablesAdmin({ session }: { session: ConsoleSession }) {
           {error}
         </p>
       )}
-      <ul className="table-list card-grid mb-5">
+      <ul className="table-list card-grid mb-5" inert={qrDialog !== null}>
         {tables.map((table) => (
           <li key={table.id} className="table-row card flex flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
@@ -109,7 +114,7 @@ export function TablesAdmin({ session }: { session: ConsoleSession }) {
         ))}
       </ul>
       {canWrite && (
-        <div className="table-new card flex flex-col sm:flex-row sm:items-end sm:gap-3">
+        <div className="table-new card flex flex-col sm:flex-row sm:items-end sm:gap-3" inert={qrDialog !== null}>
           <div className="sm:flex-1">
             <label htmlFor="new-table-number">Số bàn mới</label>
             <input id="new-table-number" value={newTableNumber} onChange={(event) => setNewTableNumber(event.target.value)} />
@@ -121,7 +126,7 @@ export function TablesAdmin({ session }: { session: ConsoleSession }) {
       )}
       {qrDialog && <div className="dialog-backdrop" aria-hidden="true" />}
       {qrDialog && (
-        <div role="dialog" aria-label={`QR bàn ${qrDialog.tableNumber}`} className="qr-dialog">
+        <div role="dialog" aria-modal="true" aria-label={`QR bàn ${qrDialog.tableNumber}`} className="qr-dialog" tabIndex={-1} ref={focusOnMount}>
           <img className="mx-auto size-56" src={qrDialog.qrDataUrl} alt={`Mã QR bàn ${qrDialog.tableNumber}`} />
           <p className="qr-url">{qrDialog.tokenUrl}</p>
           <p role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
