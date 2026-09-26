@@ -27,8 +27,8 @@
     "cf-typegen": "wrangler types --env-interface Env",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
-    "deploy:console": "npm run build:console && wrangler deploy --config apps/console/dist/qr_menu_app/wrangler.json",
-    "deploy:storefront": "npm run build:storefront && wrangler deploy --config apps/storefront/wrangler.jsonc --name qr-menu-storefront",
+    "deploy:console": "tsx scripts/deploy-worker.ts console",
+    "deploy:storefront": "tsx scripts/deploy-worker.ts storefront",
     "test:browser": "vitest run --config vitest.browser.config.ts"
   },
   "devDependencies": {

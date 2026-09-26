@@ -31,14 +31,18 @@ jobs:
 
   deploy:
     needs: verify
-    # Manual only until production is provisioned (D1/R2 created, database_id in wrangler.jsonc, real
-    # CONSOLE_ORIGIN/STOREFRONT_ORIGIN, Cloudflare secrets, VITE_STOREFRONT_API_BASE_URL for the storefront build —
-    # see docs/runbook-cutover.md). Restore `|| github.ref == 'refs/heads/main'` to deploy on every push to main.
-    if: github.event_name == 'workflow_dispatch'
+    # Manual only until production is provisioned (R2 bucket, Cloudflare secrets, CLOUDFLARE_API_TOKEN — see
+    # docs/next-steps-go-live.md). Origins come from repository variables CONSOLE_ORIGIN / STOREFRONT_ORIGIN and are
+    # injected by scripts/deploy-worker.ts (never committed — D21); it refuses to deploy if either is missing or not a
+    # bare https origin. To deploy on every push to main, change `if:` to
+    # `github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push')`.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CONSOLE_ORIGIN: ${{ vars.CONSOLE_ORIGIN }}
+      STOREFRONT_ORIGIN: ${{ vars.STOREFRONT_ORIGIN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -47,8 +51,8 @@ jobs:
           cache: npm
       - run: npm ci
       # Migrations land before code; storefront deploys before console (console needs STOREFRONT_ORIGIN live).
-      # Precondition: qr-menu-app-db already exists (`wrangler d1 create qr-menu-app-db`, one time); migrations resolve
-      # it by name and do not auto-provision it.
+      # Precondition: qr-menu-app-db exists and its database_id is committed in wrangler.jsonc (created once with
+      # `wrangler d1 create qr-menu-app-db`); migrations target that id.
       - run: npm run db:migrate:remote
       - run: npm run deploy:storefront
       - run: npm run deploy:console
