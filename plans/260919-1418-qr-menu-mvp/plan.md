@@ -248,5 +248,9 @@ Deploy production lần đầu (2026-09-26, chạy tay trên máy bằng `npm ru
 - Chủ quán đã đăng xuất và thử một tài khoản Google lạ: bị từ chối. D1 production: 1 user, 1 membership owner, không có row cho tài khoản lạ. Regression gate phase 6 đã đóng.
 - Bổ sung sau review: nút đăng xuất trước đây kẹt ở "Đang đăng xuất…" khi request lỗi mạng, vì `fetch` reject mà không ai bắt. Đã thêm `try/catch` và test browser; bỏ `try` đi thì test đỏ.
 - Chưa có lời mời nào trong D1 production (`owner_invitations` trống) → mục "nhân viên nhận lời mời và đăng nhập được" của go-live Bước 10 **chưa** tick.
+- PR #2 (Console Tailwind responsive redesign, plan `260926-2014-console-responsive-redesign`) được review bằng `/ak:review-pr --fix --reply --merge`:
+  - 1 finding đã sửa trong `aa27815`: hai hộp thoại mở một lần chỉ chặn chuột, bàn phím vẫn Tab tới "Tắt bàn"/"Thu hồi" phía sau. Giờ phần sau là `inert`, hộp thoại có `aria-modal` và nhận focus khi mở; test browser đỏ trên `6c13dd6`, xanh trên `aa27815`.
+  - Review đăng dạng COMMENT, vì GitHub không cho tự approve PR của chính mình. Đã merge (`60db362`, đóng issue #1).
+  - Deploy LIVE bằng run 36243196230: verify ✅, deploy ✅. Production đã có CSS Tailwind, `aria-modal`/`inert`, nút đăng xuất; CORS, session 401 và `redirect_uri` vẫn đúng; vẫn đủ 5 secret.
 
 <!-- slug: qr-menu-mvp -->
