@@ -80,6 +80,24 @@ label {
   background: #1a73e8;
 }
 
+.console-account {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 12rem;
+}
+
+.console-account-email {
+  color: #cccccc;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.console-account .console-error {
+  color: #ffb4ab;
+}
+
 .console-main {
   flex: 1;
   padding: 1.5rem;

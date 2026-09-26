@@ -116,4 +116,14 @@ describe('console session & CSRF (D15, scout-04 §7.2/§7.7)', () => {
     const body = (await response.json()) as { role: string };
     expect(body.role).toBe('owner');
   });
+
+  it('sign-out revokes the session server-side: the same cookie is rejected afterwards, not merely cleared in the browser', async () => {
+    const session = await createConsoleSession({ role: 'owner', status: 'active' });
+    const signOut = await consoleRequest('/api/auth/sign-out', { method: 'POST', cookie: session.cookie, headers: { 'content-type': 'application/json' }, body: '{}' });
+    expect(signOut.status).toBe(200);
+    expect(signOut.headers.get('set-cookie')).toMatch(/Max-Age=0/i);
+
+    const reused = await consoleRequest('/api/console/session', { cookie: session.cookie });
+    expect(reused.status).toBe(401);
+  });
 });

@@ -8,6 +8,7 @@ import { MenuAdmin } from './menu-admin.tsx';
 import { RefundsAdmin } from './refunds-admin.tsx';
 import { RevenuePanel } from './revenue-panel.tsx';
 import { StaffAdmin } from './staff-admin.tsx';
+import { SignOutButton } from './sign-out-button.tsx';
 import { TablesAdmin } from './tables-admin.tsx';
 
 type SessionState =
@@ -129,6 +130,10 @@ function ConsoleRouter({ session }: { session: ConsoleSession }) {
             {candidate.label}
           </a>
         ))}
+        <div className="console-account">
+          <span className="console-account-email">{session.user.email}</span>
+          <SignOutButton />
+        </div>
       </nav>
       <main className="console-main">{route.render(session)}</main>
     </div>
@@ -149,7 +154,14 @@ function ConsoleApp() {
     case 'service-unavailable':
       return <p role="alert">Đăng nhập chưa được cấu hình, vui lòng liên hệ quản trị viên.</p>;
     case 'store-access-denied':
-      return <p role="alert">Tài khoản này không có quyền truy cập Console.</p>;
+      // A Google account without an active membership still holds a valid session; without a way out the only
+      // fix would be clearing cookies by hand before trying another account.
+      return (
+        <main className="console-screen">
+          <p role="alert">Tài khoản này không có quyền truy cập Console.</p>
+          <SignOutButton />
+        </main>
+      );
     case 'ready':
       return <ConsoleRouter session={session.session} />;
   }
