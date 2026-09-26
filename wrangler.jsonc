@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "qr-menu-app",
+  "main": "apps/worker/src/index.ts",
+  // Must not exceed the workerd bundled with @cloudflare/vitest-pool-workers; shared with apps/storefront/wrangler.jsonc.
+  "compatibility_date": "2026-08-15",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./apps/console/dist/client",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api", "/api/*"]
+  },
+  // database_id is omitted on purpose: Wrangler provisions the database on first deploy and writes the id back.
+  "d1_databases": [{ "binding": "DB", "database_name": "qr-menu-app-db", "migrations_dir": "migrations" }],
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "qr-menu-app-files" }],
+  "triggers": { "crons": ["*/1 * * * *", "*/5 * * * *"] },
+  // Origins are local-dev values; deploys override them with the real origins (D21).
+  // Provider base URLs live here, never in source, so tests can point them at stubs.
+  "vars": {
+    "CONSOLE_ORIGIN": "http://127.0.0.1:5173",
+    "STOREFRONT_ORIGIN": "http://127.0.0.1:5174",
+    "PAYFS_API_BASE": "https://api.payfs.vn",
+    "RESEND_API_BASE": "https://api.resend.com"
+  }
+}

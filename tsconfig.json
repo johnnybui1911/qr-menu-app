@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es2024",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2024", "dom", "dom.iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "types": ["node", "@cloudflare/vitest-pool-workers/types"]
+  },
+  "include": ["apps", "packages", "scripts", "tests", "worker-configuration.d.ts", "*.config.ts"],
+  "exclude": ["**/dist", "node_modules"]
+}

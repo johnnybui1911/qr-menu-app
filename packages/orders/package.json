@@ -1,0 +1,13 @@
+{
+  "name": "@qr/orders",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@qr/catalog": "0.0.0",
+    "@qr/identity": "0.0.0"
+  }
+}

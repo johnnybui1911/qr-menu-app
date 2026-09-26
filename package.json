@@ -1,0 +1,52 @@
+{
+  "name": "qr-menu-app",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:console": "vite --config apps/console/vite.config.ts",
+    "dev:storefront": "vite --config apps/storefront/vite.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:node && npm run test:workerd && npm run test:browser",
+    "test:node": "vitest run --config vitest.node.config.ts",
+    "test:workerd": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:artifacts": "vitest run --config vitest.artifacts.config.ts",
+    "test:e2e": "playwright test",
+    "build:console": "npm run typecheck && vite build --config apps/console/vite.config.ts && npm run assert:production-import-graph:console",
+    "build:storefront": "vite build --config apps/storefront/vite.config.ts && npm run assert:production-import-graph:storefront",
+    "assert:production-import-graph:console": "tsx scripts/assert-production-import-graph.ts --target console",
+    "assert:production-import-graph:storefront": "tsx scripts/assert-production-import-graph.ts --target storefront",
+    "cf-typegen": "wrangler types --env-interface Env",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "deploy:console": "npm run build:console && wrangler deploy --config apps/console/dist/qr_menu_app/wrangler.json",
+    "deploy:storefront": "npm run build:storefront && wrangler deploy --config apps/storefront/wrangler.jsonc --name qr-menu-storefront",
+    "test:browser": "vitest run --config vitest.browser.config.ts"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.60.2",
+    "@cloudflare/vitest-pool-workers": "0.22.0",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.3",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/browser-playwright": "^4.1.11",
+    "playwright": "^1.63.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "4.1.11",
+    "vitest-browser-react": "^2.3.0",
+    "wrangler": "^4.141.0"
+  }
+}

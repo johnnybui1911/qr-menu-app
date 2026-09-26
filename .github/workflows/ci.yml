@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build:console
+      - run: npm run test:artifacts
+      - run: npm run build:storefront
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+  deploy:
+    needs: verify
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Migrations land before code; storefront deploys before console (console needs STOREFRONT_ORIGIN live).
+      # Precondition: qr-menu-app-db already exists (`wrangler d1 create qr-menu-app-db`, one time); migrations resolve
+      # it by name and do not auto-provision it.
+      - run: npm run db:migrate:remote
+      - run: npm run deploy:storefront
+      - run: npm run deploy:console

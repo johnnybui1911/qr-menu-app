@@ -1,0 +1,23 @@
+# Local secrets for `wrangler dev` (D16): copy to `.dev.vars`, fill in real values, never commit `.dev.vars` itself
+# (`.gitignore` blocks `.dev.vars*` except this example). Production uses `wrangler secret put` instead — see
+# `scripts/setup-secrets.sh` for the Console auth secrets and `docs/runbook-oauth.md` for the Google OAuth client.
+# No secret value belongs in this file, only the variable names every phase has introduced so far.
+
+# Console auth (phase 6) — see docs/runbook-oauth.md
+BETTER_AUTH_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+INITIAL_OWNER_EMAIL=
+INVITATION_HMAC_SECRET=
+
+# PayFS webhook + reconciliation (phases 4-5)
+PAYFS_MERCHANT_BANK_BIN=
+PAYFS_MERCHANT_ACCOUNT=
+PAYFS_WEBHOOK_API_KEY=
+PAYFS_WEBHOOK_SECRET=
+PAYFS_API_TOKEN=
+
+# Email outbox delivery (phase 5)
+RESEND_API_KEY=
+RESEND_FROM_ADDRESS=
+OWNER_REPORT_EMAIL=

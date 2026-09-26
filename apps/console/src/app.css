@@ -1,0 +1,155 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f5f6f8;
+  color: #1a1a1a;
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.5rem 1rem;
+  border: 1px solid #1a1a1a;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+input,
+select,
+textarea {
+  min-height: 44px;
+  padding: 0.5rem;
+  border: 1px solid #999999;
+  border-radius: 6px;
+}
+
+label {
+  display: block;
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.console-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.console-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #1a1a1a;
+}
+
+.console-nav a {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.console-nav a[aria-current='page'] {
+  background: #1a73e8;
+}
+
+.console-main {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.console-error {
+  color: #b3261e;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #fce8e6;
+  color: #b3261e;
+  font-size: 0.85rem;
+}
+
+.badge-attention {
+  background: #fef7e0;
+  color: #a26400;
+}
+
+.kitchen-table-group {
+  margin-bottom: 1.5rem;
+}
+
+.kitchen-ticket-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+}
+
+.kitchen-ticket {
+  background: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  padding: 1rem;
+  min-width: 240px;
+}
+
+.kitchen-ticket-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.qr-dialog,
+.invitation-dialog {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 2px solid #1a73e8;
+  border-radius: 8px;
+  background: #ffffff;
+  max-width: 420px;
+}
+
+.qr-url,
+.invitation-url {
+  word-break: break-all;
+  font-family: ui-monospace, monospace;
+}
+
+.revenue-summary {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  gap: 0.25rem 1rem;
+}
