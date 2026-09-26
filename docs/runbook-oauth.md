@@ -18,10 +18,10 @@ Callback path cố định là `/api/auth/callback/google` (đây là endpoint G
 | Môi trường | Authorized JavaScript origin | Authorized redirect URI |
 |---|---|---|
 | Local dev | `http://127.0.0.1:5173` (khớp `CONSOLE_ORIGIN` trong `wrangler.jsonc`, mục `vars` gốc) | `http://127.0.0.1:5173/api/auth/callback/google` |
-| Production | `${CONSOLE_ORIGIN}` của `env.production` trong `wrangler.jsonc` | `${CONSOLE_ORIGIN}/api/auth/callback/google` |
+| Production | `${CONSOLE_ORIGIN}` — repository variable `CONSOLE_ORIGIN` (`gh variable list`) | `${CONSOLE_ORIGIN}/api/auth/callback/google` |
 
 **Không gõ tay hostname vào code hay tài liệu này ngoài bảng trên** (C10, D21): giá trị thật của `CONSOLE_ORIGIN`
-production đọc từ `wrangler.jsonc`, không lặp lại ở đây, vì domain sẽ đổi ở phase 10 (cutover khỏi `workers.dev`).
+production là repository variable của GitHub, được `scripts/deploy-worker.ts` tiêm vào lúc deploy; không lặp lại ở đây, vì domain sẽ đổi khi cutover khỏi `workers.dev`.
 Khi cutover, quay lại bước 2 và **thêm** (không thay) origin/redirect URI mới trước khi deploy, để URL cũ vẫn còn
 hiệu lực cho tới khi xác nhận URL mới hoạt động.
 

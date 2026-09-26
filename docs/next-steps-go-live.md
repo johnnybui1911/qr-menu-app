@@ -37,34 +37,39 @@ Nếu dùng bộ công cụ AI (`/ak:cook`, agent `kongming`): chạy `ak kit in
 
 ## Bước 3 — Cloudflare: đăng nhập, tạo D1 + R2, migrate
 
+**Trạng thái 2026-09-26: xong.** Đã đăng nhập, D1 `qr-menu-app-db` đã tạo và migrate đủ 5 migration (23 bảng), `database_id` đã ghi trong `wrangler.jsonc`, R2 đã bật và bucket `qr-menu-app-files` đã tạo, `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` đã nạp vào GitHub. Token chỉ kiểm được khi job `deploy` chạy lần đầu.
+
 1. Đăng nhập:
 
    ```bash
    npx wrangler login
    ```
 
-2. Tạo database và bucket ảnh:
+2. Bật R2 cho tài khoản (Dashboard → R2 → **Enable / Purchase R2**; cần khai phương thức thanh toán, gói miễn phí 10 GB). Chưa bật thì mọi lệnh R2 báo lỗi `10042 Please enable R2 through the Cloudflare Dashboard`. Sau đó tạo bucket ảnh:
 
    ```bash
-   npx wrangler d1 create qr-menu-app-db
    npx wrangler r2 bucket create qr-menu-app-files
    ```
 
-3. Lệnh `d1 create` in ra `database_id`. Mở `wrangler.jsonc`, thêm vào khối `d1_databases` (xoá dòng chú thích "database_id is omitted on purpose"):
+3. (Đã xong) `npx wrangler d1 create qr-menu-app-db` rồi ghi `database_id` vào khối `d1_databases` của `wrangler.jsonc`. Đừng để `d1 create` tự sửa config: nó viết lại cả file và mất chú thích.
 
-   ```jsonc
-   "d1_databases": [{ "binding": "DB", "database_name": "qr-menu-app-db", "database_id": "<id-vừa-nhận>", "migrations_dir": "migrations" }],
-   ```
-
-4. Chạy migration lên production:
+4. (Đã xong) Chạy migration lên production:
 
    ```bash
    npm run db:migrate:remote
    ```
 
-5. Tạo API token cho GitHub Actions: Cloudflare Dashboard → My Profile → API Tokens → Create Token → mẫu **Edit Cloudflare Workers**, thêm quyền **D1: Edit**. Ghi lại token và **Account ID** (Dashboard → Workers & Pages, cột phải).
+   **Lưu ý:** từ lúc này `0001`–`0005` đã chạy trên production nên không được sửa (C13); đổi schema thì thêm `0006-…`. Ai đã có DB local trước khi có `database_id` thì chạy lại `npm run db:migrate:local` (DB local giờ nằm dưới id mới).
 
-**Xong khi:** `db:migrate:remote` báo ✅ đủ 5 migration (`0001` → `0005`).
+5. Tạo API token cho GitHub Actions: Cloudflare Dashboard → My Profile → API Tokens → Create Token → mẫu **Edit Cloudflare Workers**, thêm quyền **D1: Edit** và **Workers R2 Storage: Edit**. Nạp vào GitHub:
+
+   ```bash
+   gh secret set CLOUDFLARE_API_TOKEN
+   ```
+
+   `CLOUDFLARE_ACCOUNT_ID` cũng nạp bằng `gh secret set` (giá trị = Account ID ở `npx wrangler whoami`).
+
+**Xong khi:** `npx wrangler r2 bucket list` thấy `qr-menu-app-files` và `gh secret list` có `CLOUDFLARE_API_TOKEN`.
 
 ---
 
@@ -142,29 +147,16 @@ Chi tiết: `docs/runbook-oauth.md`.
 
 ## Bước 6 — Deploy lên Cloudflare
 
-### 6.1 Sửa cấu hình cho production
+### 6.1 Origin production
 
-1. `wrangler.jsonc` → khối `vars`: đổi hai origin từ `127.0.0.1` sang địa chỉ thật:
+Origin thật **không** ghi vào repo (D21). `wrangler.jsonc` giữ giá trị `127.0.0.1` cho dev, e2e và test. Lúc deploy, `npm run deploy:*` (`scripts/deploy-worker.ts`) đọc `CONSOLE_ORIGIN` và `STOREFRONT_ORIGIN` từ biến môi trường rồi:
 
-   ```jsonc
-   "CONSOLE_ORIGIN": "<CONSOLE_ORIGIN>",
-   "STOREFRONT_ORIGIN": "<STOREFRONT_ORIGIN>",
-   ```
+- build storefront với `VITE_STOREFRONT_API_BASE_URL = CONSOLE_ORIGIN`;
+- deploy Console với `wrangler deploy --var CONSOLE_ORIGIN:… --var STOREFRONT_ORIGIN:…`.
 
-   Sau đó chạy `npm run cf-typegen` và commit cả `worker-configuration.d.ts`.
+Script từ chối deploy nếu thiếu biến, không phải `https`, là địa chỉ loopback, có `/` ở cuối hoặc hai origin trùng nhau.
 
-   **Lưu ý:** khi dev trên máy, đè hai biến này bằng cách thêm vào `.dev.vars`:
-
-   ```
-   CONSOLE_ORIGIN=http://127.0.0.1:5173
-   STOREFRONT_ORIGIN=http://127.0.0.1:5174
-   ```
-
-2. `.github/workflows/ci.yml` → job `deploy`:
-   - thêm `VITE_STOREFRONT_API_BASE_URL: <CONSOLE_ORIGIN>` vào `env:` (biến build-time của storefront, nằm trong bundle);
-   - khi muốn deploy tự động mỗi lần push `main`, đổi dòng `if:` thành
-     `if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'`.
-     Trước khi hạ tầng sẵn sàng thì giữ nguyên (chỉ chạy tay).
+Trong CI, hai biến này là **repository variables** và đã được đặt sẵn là `<CONSOLE_ORIGIN>` / `<STOREFRONT_ORIGIN>` (kiểm bằng `gh variable list`). Không cần sửa `ci.yml`. Muốn deploy tự động mỗi lần push `main` thì sửa dòng `if:` của job `deploy` theo chú thích ngay trên nó.
 
 ### 6.2 Nạp secret production
 
@@ -174,9 +166,9 @@ npx wrangler secret put PAYFS_MERCHANT_BANK_BIN
 npx wrangler secret put PAYFS_MERCHANT_ACCOUNT
 ```
 
-GitHub repo → Settings → Secrets and variables → Actions → thêm:
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
+Lần `secret put` đầu tiên hỏi có tạo Worker `qr-menu-app` không → chọn **Yes** (wrangler tạo một Worker rỗng để giữ secret; `deploy:console` ở bước 6.3 thay code và giữ nguyên secret). Làm bước này ngay trước 6.3, vì trong lúc chờ URL `workers.dev` chỉ trả lỗi.
+
+Kiểm tra: `npx wrangler secret list` thấy đủ tên; `gh secret list` có `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` (bước 3); `gh variable list` có `CONSOLE_ORIGIN` + `STOREFRONT_ORIGIN`.
 
 ### 6.3 Deploy
 
@@ -185,8 +177,9 @@ GitHub repo → Settings → Secrets and variables → Actions → thêm:
 **Cách B — tay trên máy:**
 
 ```bash
+export CONSOLE_ORIGIN=<CONSOLE_ORIGIN> STOREFRONT_ORIGIN=<STOREFRONT_ORIGIN>
 npm run db:migrate:remote
-VITE_STOREFRONT_API_BASE_URL=<CONSOLE_ORIGIN> npm run deploy:storefront
+npm run deploy:storefront
 npm run deploy:console
 ```
 
@@ -302,18 +295,17 @@ Chi tiết: `docs/runbook-smoke-test.md`.
 
 ## Bước 11 — Chuyển sang domain riêng (O9, làm sau)
 
-Chi tiết: `docs/runbook-cutover.md`. Phải đổi **đồng bộ 4 chỗ**, thiếu một chỗ là lỗi:
+Chi tiết: `docs/runbook-cutover.md`. Phải đổi **đồng bộ 3 chỗ**, thiếu một chỗ là lỗi:
 
 1. Google OAuth: thêm origin + redirect URI mới (giữ URI cũ đến khi chạy ổn).
-2. `CONSOLE_ORIGIN` trong `wrangler.jsonc`.
-3. `STOREFRONT_ORIGIN` trong `wrangler.jsonc`.
-4. **Build lại storefront** với `VITE_STOREFRONT_API_BASE_URL` mới (biến nằm trong bundle; đổi env server không đủ), gồm cả biến này trong job `deploy` của CI.
+2. Repository variable `CONSOLE_ORIGIN` (`gh variable set CONSOLE_ORIGIN`).
+3. Repository variable `STOREFRONT_ORIGIN` (`gh variable set STOREFRONT_ORIGIN`).
 
-Sau đó deploy storefront → console.
+Sau đó chạy lại job `deploy`: storefront được build lại với `VITE_STOREFRONT_API_BASE_URL` mới rồi mới tới console.
 
 Dấu hiệu thiếu:
 - `redirect_uri_mismatch` → thiếu mục 1.
-- Lỗi CORS trên trang khách → thiếu mục 3 hoặc 4.
+- Lỗi CORS trên trang khách → thiếu mục 2 hoặc 3, hoặc chưa deploy lại.
 
 ---
 
