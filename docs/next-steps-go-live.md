@@ -75,6 +75,8 @@ Nếu dùng bộ công cụ AI (`/ak:cook`, agent `kongming`): chạy `ak kit in
 
 ## Bước 4 — Google OAuth client
 
+**Trạng thái 2026-09-26: xong.** Client đã tạo; production trả `redirect_uri` đúng `<CONSOLE_ORIGIN>/api/auth/callback/google`.
+
 Chi tiết: `docs/runbook-oauth.md`.
 
 1. Google Cloud Console → APIs & Services → Credentials → **Create OAuth client ID** → loại **Web application**.
@@ -146,6 +148,14 @@ Chi tiết: `docs/runbook-oauth.md`.
 ---
 
 ## Bước 6 — Deploy lên Cloudflare
+
+**Trạng thái 2026-09-26:** đã deploy tay (Cách B) cả storefront lẫn console lên `workers.dev`. Đã nạp 5/7 secret (5 secret đăng nhập Console); còn `PAYFS_MERCHANT_BANK_BIN` và `PAYFS_MERCHANT_ACCOUNT`, chờ mở tài khoản MB Bank. Cho tới lúc đó đặt đơn trả `503 payment_unavailable`, webhook trả `503 payfs_not_configured`. Đã kiểm trên production:
+- preflight CORS từ storefront trả đúng `access-control-allow-origin`, origin lạ không được trả;
+- `GET /api/console/session` trả 401 (không phải 503), nghĩa là secret đăng nhập đã đọc được;
+- đăng nhập Google chuyển sang `accounts.google.com` với `redirect_uri` production;
+- bundle storefront trỏ API production, không còn `127.0.0.1`.
+
+Còn phải chạy job `deploy` trên GitHub Actions ít nhất một lần để kiểm `CLOUDFLARE_API_TOKEN`.
 
 ### 6.1 Origin production
 

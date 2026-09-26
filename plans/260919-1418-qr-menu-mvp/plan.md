@@ -233,4 +233,16 @@ Cập nhật cùng ngày, sau khi chủ tài khoản bật R2 và nạp `CLOUDFL
 - Guard deploy: gọi thẳng `tsx scripts/deploy-worker.ts console` (thiếu origin) → exit 1; `npm run deploy:console` (thiếu origin) → exit 1; `npm run deploy:storefront` với origin loopback → exit 1. Cả ba không in dòng build nào. Lần kiểm trước in `exit=0` là do exit code của pipe `grep | head`, không phải của script.
 - `CLOUDFLARE_API_TOKEN` chỉ kiểm được khi job `deploy` chạy thật, mà job này chỉ lấy code từ `main` → cần commit + push trước.
 
+Deploy production lần đầu (2026-09-26, chạy tay trên máy bằng `npm run deploy:storefront` rồi `npm run deploy:console`, kèm hai origin production):
+- Chủ tài khoản đã tạo Google OAuth client và nạp 5 secret đăng nhập Console. Hai secret ngân hàng hoãn lại chờ mở tài khoản MB, vì PayFS OpenBanking chỉ hỗ trợ MB/ACB/OCB cho cá nhân/hộ kinh doanh.
+- Deploy không mất secret nào: sau deploy vẫn đủ 5. Binding: DB, FILES, ASSETS, hai origin được tiêm (hiện `(hidden)`), cron `*/1` và `*/5`.
+- Kiểm trên production:
+  - preflight từ storefront → 204, `access-control-allow-origin` đúng, `max-age: 600`; từ origin lạ thì không có header này;
+  - `/api/console/session` → 401 `unauthenticated`;
+  - sign-in Google → `accounts.google.com` với `redirect_uri` production;
+  - menu với token lạ → 404 đồng nhất (có đọc D1);
+  - webhook → 503 `payfs_not_configured` (fail-closed);
+  - bundle storefront trỏ API production, không còn `127.0.0.1`.
+- Còn cần chủ tài khoản: đăng nhập Google thật (phase 6), push (token `gh` thiếu scope `workflow`) rồi chạy job `deploy` trên CI để kiểm `CLOUDFLARE_API_TOKEN`.
+
 <!-- slug: qr-menu-mvp -->
