@@ -95,15 +95,15 @@ function SignInScreen() {
   }
 
   return (
-    <main className="console-screen sign-in-screen">
-      <h1>QR Menu Console</h1>
-      <p>Đăng nhập bằng tài khoản Google được cấp quyền để tiếp tục.</p>
+    <main className="console-screen sign-in-screen standalone-screen">
+      <h1 className="text-xl font-bold">QR Menu Console</h1>
+      <p className="mt-2 text-sm text-slate-600">Đăng nhập bằng tài khoản Google được cấp quyền để tiếp tục.</p>
       {error && (
         <p className="console-error" role="alert">
           {error}
         </p>
       )}
-      <button type="button" onClick={signIn} disabled={pending}>
+      <button type="button" className="btn-primary mt-6 w-full" onClick={signIn} disabled={pending}>
         {pending ? 'Đang chuyển hướng…' : 'Đăng nhập bằng Google'}
       </button>
     </main>
@@ -115,27 +115,39 @@ function ConsoleRouter({ session }: { session: ConsoleSession }) {
   const route = ROUTES.find((candidate) => candidate.path === path) ?? ROUTES[0];
 
   return (
-    <div className="console-shell">
-      <nav className="console-nav" aria-label="Điều hướng Console">
-        {ROUTES.filter((candidate) => candidate.visible(session)).map((candidate) => (
-          <a
-            key={candidate.path}
-            href={candidate.path}
-            aria-current={candidate.path === route.path ? 'page' : undefined}
-            onClick={(event) => {
-              event.preventDefault();
-              navigate(candidate.path);
-            }}
-          >
-            {candidate.label}
-          </a>
-        ))}
-        <div className="console-account">
-          <span className="console-account-email">{session.user.email}</span>
+    <div className="console-shell min-h-dvh lg:grid lg:grid-cols-[240px_1fr]">
+      <nav
+        className="console-nav sticky top-0 z-10 grid grid-cols-[1fr_auto] items-center gap-x-3 border-b border-slate-200 bg-white/90 px-4 pt-2 backdrop-blur lg:flex lg:h-dvh lg:flex-col lg:items-stretch lg:border-r lg:border-b-0 lg:p-4"
+        aria-label="Điều hướng Console"
+      >
+        <div className="flex items-center gap-2 text-base font-bold whitespace-nowrap text-slate-900 lg:mb-6 lg:px-3">
+          <span className="grid size-8 place-items-center rounded-lg bg-brand-600 text-sm text-white" aria-hidden="true">
+            QR
+          </span>
+          QR Menu
+        </div>
+        <div className="col-span-2 row-start-2 -mx-4 flex gap-1 overflow-x-auto px-4 py-2 [scrollbar-width:none] lg:mx-0 lg:flex-col lg:overflow-visible lg:p-0">
+          {ROUTES.filter((candidate) => candidate.visible(session)).map((candidate) => (
+            <a
+              key={candidate.path}
+              href={candidate.path}
+              className="flex min-h-11 shrink-0 items-center rounded-lg px-3 text-sm font-medium whitespace-nowrap text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 aria-[current=page]:bg-brand-50 aria-[current=page]:text-brand-700"
+              aria-current={candidate.path === route.path ? 'page' : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                navigate(candidate.path);
+              }}
+            >
+              {candidate.label}
+            </a>
+          ))}
+        </div>
+        <div className="console-account flex min-w-0 items-center gap-2 lg:mt-auto lg:flex-col lg:items-stretch lg:border-t lg:border-slate-200 lg:pt-4">
+          <span className="console-account-email sr-only max-w-[40vw] truncate text-xs text-slate-500 sm:not-sr-only sm:block lg:max-w-none lg:px-1">{session.user.email}</span>
           <SignOutButton />
         </div>
       </nav>
-      <main className="console-main">{route.render(session)}</main>
+      <main className="console-main mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">{route.render(session)}</main>
     </div>
   );
 }
@@ -148,17 +160,25 @@ function ConsoleApp() {
 
   switch (session.kind) {
     case 'loading':
-      return <p>Đang tải…</p>;
+      return <p className="p-8 text-center text-sm text-slate-500">Đang tải…</p>;
     case 'unauthenticated':
       return <SignInScreen />;
     case 'service-unavailable':
-      return <p role="alert">Đăng nhập chưa được cấu hình, vui lòng liên hệ quản trị viên.</p>;
+      return (
+        <main className="standalone-screen">
+          <p role="alert" className="console-error">
+            Đăng nhập chưa được cấu hình, vui lòng liên hệ quản trị viên.
+          </p>
+        </main>
+      );
     case 'store-access-denied':
       // A Google account without an active membership still holds a valid session; without a way out the only
       // fix would be clearing cookies by hand before trying another account.
       return (
-        <main className="console-screen">
-          <p role="alert">Tài khoản này không có quyền truy cập Console.</p>
+        <main className="console-screen standalone-screen">
+          <p role="alert" className="mb-4 text-sm font-medium text-slate-700">
+            Tài khoản này không có quyền truy cập Console.
+          </p>
           <SignOutButton />
         </main>
       );

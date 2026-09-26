@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { apiGet, apiSend, isErrorBody, type ConsoleSession } from './api-client.ts';
 
+/** Stable ref callback: moves focus into the dialog once, on open, so keyboard users start inside it (the page behind is `inert`). */
+function focusOnMount(node: HTMLElement | null): void {
+  node?.focus();
+}
+
 type ConsoleTable = { id: string; tableNumber: string; isActive: boolean; liveTokens: number };
 
 const WRITE_ERROR_MESSAGE: Record<string, string> = {
@@ -79,46 +84,55 @@ export function TablesAdmin({ session }: { session: ConsoleSession }) {
 
   return (
     <section className="console-screen tables-admin" aria-label="Quản lý bàn">
-      <h1>Bàn</h1>
+      <h1 className="page-title">Bàn</h1>
       {error && (
         <p className="console-error" role="alert">
           {error}
         </p>
       )}
-      <ul className="table-list">
+      <ul className="table-list card-grid mb-5" inert={qrDialog !== null}>
         {tables.map((table) => (
-          <li key={table.id} className="table-row">
-            <span>Bàn {table.tableNumber}</span>
-            <span>{table.isActive ? 'Đang dùng' : 'Đã tắt'}</span>
-            <span>{table.liveTokens} mã QR còn hiệu lực</span>
-            {canWrite && (
-              <button type="button" onClick={() => toggleActive(table)}>
-                {table.isActive ? 'Tắt bàn' : 'Bật bàn'}
-              </button>
-            )}
-            {canExportQr && (
-              <button type="button" aria-label={`Xuất QR — Bàn ${table.tableNumber}`} onClick={() => exportQr(table)}>
-                Xuất QR
-              </button>
-            )}
+          <li key={table.id} className="table-row card flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-lg font-semibold">Bàn {table.tableNumber}</span>
+              <span className={table.isActive ? 'badge badge-success' : 'badge'}>{table.isActive ? 'Đang dùng' : 'Đã tắt'}</span>
+            </div>
+            <span className="text-sm text-slate-500">{table.liveTokens} mã QR còn hiệu lực</span>
+            <div className="mt-1 flex flex-wrap gap-2 [&>button]:flex-1">
+              {canWrite && (
+                <button type="button" className={table.isActive ? 'btn-danger' : undefined} onClick={() => toggleActive(table)}>
+                  {table.isActive ? 'Tắt bàn' : 'Bật bàn'}
+                </button>
+              )}
+              {canExportQr && (
+                <button type="button" className="btn-primary" aria-label={`Xuất QR — Bàn ${table.tableNumber}`} onClick={() => exportQr(table)}>
+                  Xuất QR
+                </button>
+              )}
+            </div>
           </li>
         ))}
       </ul>
       {canWrite && (
-        <div className="table-new">
-          <label htmlFor="new-table-number">Số bàn mới</label>
-          <input id="new-table-number" value={newTableNumber} onChange={(event) => setNewTableNumber(event.target.value)} />
-          <button type="button" onClick={createTable}>
+        <div className="table-new card flex flex-col sm:flex-row sm:items-end sm:gap-3" inert={qrDialog !== null}>
+          <div className="sm:flex-1">
+            <label htmlFor="new-table-number">Số bàn mới</label>
+            <input id="new-table-number" value={newTableNumber} onChange={(event) => setNewTableNumber(event.target.value)} />
+          </div>
+          <button type="button" className="btn-primary mt-3 sm:mt-0" onClick={createTable}>
             Thêm bàn
           </button>
         </div>
       )}
+      {qrDialog && <div className="dialog-backdrop" aria-hidden="true" />}
       {qrDialog && (
-        <div role="dialog" aria-label={`QR bàn ${qrDialog.tableNumber}`} className="qr-dialog">
-          <img src={qrDialog.qrDataUrl} alt={`Mã QR bàn ${qrDialog.tableNumber}`} />
+        <div role="dialog" aria-modal="true" aria-label={`QR bàn ${qrDialog.tableNumber}`} className="qr-dialog" tabIndex={-1} ref={focusOnMount}>
+          <img className="mx-auto size-56" src={qrDialog.qrDataUrl} alt={`Mã QR bàn ${qrDialog.tableNumber}`} />
           <p className="qr-url">{qrDialog.tokenUrl}</p>
-          <p role="alert">Đường dẫn này chỉ hiện một lần — hãy lưu lại hoặc in ngay, đóng hộp thoại này sẽ không xem lại được.</p>
-          <button type="button" onClick={() => setQrDialog(null)}>
+          <p role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+            Đường dẫn này chỉ hiện một lần — hãy lưu lại hoặc in ngay, đóng hộp thoại này sẽ không xem lại được.
+          </p>
+          <button type="button" className="mt-4 w-full" onClick={() => setQrDialog(null)}>
             Đóng
           </button>
         </div>

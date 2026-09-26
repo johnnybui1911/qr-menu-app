@@ -174,114 +174,129 @@ export function MenuAdmin({ session }: { session: ConsoleSession }) {
 
   return (
     <section className="console-screen menu-admin" aria-label="Quản lý menu">
-      <h1>Menu</h1>
+      <h1 className="page-title">Menu</h1>
       {error && (
         <p className="console-error" role="alert">
           {error}
         </p>
       )}
       {categories.map((category) => (
-        <article key={category.id} className="menu-category">
-          <header>
-            <h2>{category.name}</h2>
+        <article key={category.id} className="menu-category card mb-5">
+          <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <h2 className="text-lg font-semibold">{category.name}</h2>
             {canWrite && (
-              <button type="button" onClick={() => deleteCategory(category.id)}>
+              <button type="button" className="btn-danger" onClick={() => deleteCategory(category.id)}>
                 Xoá danh mục
               </button>
             )}
           </header>
           <ul className="menu-product-list">
             {category.products.map((product) => (
-              <li key={product.id} className="menu-product" data-testid={`product-${product.id}`}>
+              <li key={product.id} className="menu-product border-b border-slate-100 py-3 last:border-0" data-testid={`product-${product.id}`}>
                 {editingProductId === product.id ? (
-                  <div className="menu-product-edit">
-                    <label htmlFor={`edit-name-${product.id}`}>Tên món</label>
-                    <input id={`edit-name-${product.id}`} value={editDraft.name} onChange={(event) => setEditDraft((draft) => ({ ...draft, name: event.target.value }))} />
-                    <label htmlFor={`edit-description-${product.id}`}>Mô tả</label>
-                    <input
-                      id={`edit-description-${product.id}`}
-                      value={editDraft.description}
-                      onChange={(event) => setEditDraft((draft) => ({ ...draft, description: event.target.value }))}
-                    />
-                    <label htmlFor={`edit-price-${product.id}`}>Giá (VND)</label>
-                    <input id={`edit-price-${product.id}`} value={editDraft.price} onChange={(event) => setEditDraft((draft) => ({ ...draft, price: event.target.value }))} />
-                    <button type="button" onClick={() => saveEdit(product)}>
-                      Lưu món
-                    </button>
-                    <button type="button" onClick={() => setEditingProductId(null)}>
-                      Huỷ
-                    </button>
+                  <div className="menu-product-edit grid gap-x-4 rounded-lg bg-slate-50 p-3 sm:grid-cols-3">
+                    <div>
+                      <label htmlFor={`edit-name-${product.id}`}>Tên món</label>
+                      <input id={`edit-name-${product.id}`} value={editDraft.name} onChange={(event) => setEditDraft((draft) => ({ ...draft, name: event.target.value }))} />
+                    </div>
+                    <div>
+                      <label htmlFor={`edit-description-${product.id}`}>Mô tả</label>
+                      <input
+                        id={`edit-description-${product.id}`}
+                        value={editDraft.description}
+                        onChange={(event) => setEditDraft((draft) => ({ ...draft, description: event.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor={`edit-price-${product.id}`}>Giá (VND)</label>
+                      <input id={`edit-price-${product.id}`} value={editDraft.price} onChange={(event) => setEditDraft((draft) => ({ ...draft, price: event.target.value }))} />
+                    </div>
+                    <div className="mt-3 flex gap-2 sm:col-span-3">
+                      <button type="button" className="btn-primary" onClick={() => saveEdit(product)}>
+                        Lưu món
+                      </button>
+                      <button type="button" onClick={() => setEditingProductId(null)}>
+                        Huỷ
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="menu-product-view">
-                    <span className="menu-product-name">{product.name}</span>
-                    <span className="menu-product-price">{formatVnd(product.priceMinor)}</span>
+                  <div className="menu-product-view flex flex-wrap items-center gap-x-3 gap-y-2">
+                    <span className="menu-product-name min-w-0 flex-1 font-medium">{product.name}</span>
+                    <span className="menu-product-price font-semibold tabular-nums">{formatVnd(product.priceMinor)}</span>
                     {!product.isAvailable && <span className="badge">Hết món</span>}
                     {!product.isActive && <span className="badge">Đã ẩn</span>}
                     {conflict === product.id && (
-                      <p className="console-error" role="alert">
+                      <p className="console-error w-full" role="alert">
                         Món đã được sửa ở nơi khác, tải lại.{' '}
                         <button type="button" onClick={reload}>
                           Tải lại
                         </button>
                       </p>
                     )}
-                    {canWrite && (
-                      <button type="button" aria-label={`Sửa món ${product.name}`} onClick={() => startEdit(product)}>
-                        Sửa
-                      </button>
-                    )}
-                    {canToggleStock && (
-                      <button type="button" onClick={() => toggleAvailability(product)}>
-                        {product.isAvailable ? 'Đánh dấu hết món' : 'Đánh dấu còn hàng'}
-                      </button>
-                    )}
-                    {canWrite && (
-                      <button type="button" onClick={() => deleteProduct(product)}>
-                        Xoá món
-                      </button>
-                    )}
-                    {canWriteImage && (
-                      <>
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          aria-label={`Ảnh món ${product.name}`}
-                          ref={(node) => {
-                            fileInputRefs.current[product.id] = node;
-                          }}
-                          onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            if (file) uploadImage(product, file);
-                          }}
-                        />
-                        {product.imageId && (
-                          <button type="button" onClick={() => removeImage(product)}>
-                            Xoá ảnh
-                          </button>
-                        )}
-                      </>
-                    )}
+                    <div className="flex w-full flex-wrap items-center gap-2">
+                      {canWrite && (
+                        <button type="button" aria-label={`Sửa món ${product.name}`} onClick={() => startEdit(product)}>
+                          Sửa
+                        </button>
+                      )}
+                      {canToggleStock && (
+                        <button type="button" onClick={() => toggleAvailability(product)}>
+                          {product.isAvailable ? 'Đánh dấu hết món' : 'Đánh dấu còn hàng'}
+                        </button>
+                      )}
+                      {canWrite && (
+                        <button type="button" className="btn-danger" onClick={() => deleteProduct(product)}>
+                          Xoá món
+                        </button>
+                      )}
+                      {canWriteImage && (
+                        <>
+                          <input
+                            type="file"
+                            className="w-auto max-w-full flex-1 py-2 text-xs file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold"
+                            accept="image/jpeg,image/png,image/webp"
+                            aria-label={`Ảnh món ${product.name}`}
+                            ref={(node) => {
+                              fileInputRefs.current[product.id] = node;
+                            }}
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              if (file) uploadImage(product, file);
+                            }}
+                          />
+                          {product.imageId && (
+                            <button type="button" onClick={() => removeImage(product)}>
+                              Xoá ảnh
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
               </li>
             ))}
           </ul>
           {canWrite && (
-            <div className="menu-new-product">
-              <label htmlFor={`new-product-name-${category.id}`}>Món mới</label>
-              <input
-                id={`new-product-name-${category.id}`}
-                value={newProductByCategory[category.id]?.name ?? ''}
-                onChange={(event) => setNewProductByCategory((previous) => ({ ...previous, [category.id]: { name: event.target.value, price: previous[category.id]?.price ?? '' } }))}
-              />
-              <label htmlFor={`new-product-price-${category.id}`}>Giá</label>
-              <input
-                id={`new-product-price-${category.id}`}
-                value={newProductByCategory[category.id]?.price ?? ''}
-                onChange={(event) => setNewProductByCategory((previous) => ({ ...previous, [category.id]: { name: previous[category.id]?.name ?? '', price: event.target.value } }))}
-              />
-              <button type="button" onClick={() => createProduct(category.id)}>
+            <div className="menu-new-product mt-3 grid gap-x-3 border-t border-slate-100 pt-1 sm:grid-cols-[1fr_10rem_auto] sm:items-end">
+              <div>
+                <label htmlFor={`new-product-name-${category.id}`}>Món mới</label>
+                <input
+                  id={`new-product-name-${category.id}`}
+                  value={newProductByCategory[category.id]?.name ?? ''}
+                  onChange={(event) => setNewProductByCategory((previous) => ({ ...previous, [category.id]: { name: event.target.value, price: previous[category.id]?.price ?? '' } }))}
+                />
+              </div>
+              <div>
+                <label htmlFor={`new-product-price-${category.id}`}>Giá</label>
+                <input
+                  id={`new-product-price-${category.id}`}
+                  value={newProductByCategory[category.id]?.price ?? ''}
+                  onChange={(event) => setNewProductByCategory((previous) => ({ ...previous, [category.id]: { name: previous[category.id]?.name ?? '', price: event.target.value } }))}
+                />
+              </div>
+              <button type="button" className="btn-primary mt-3 sm:mt-0" onClick={() => createProduct(category.id)}>
                 Thêm món
               </button>
             </div>
@@ -289,13 +304,17 @@ export function MenuAdmin({ session }: { session: ConsoleSession }) {
         </article>
       ))}
       {canWrite && (
-        <div className="menu-new-category">
-          <h2>Thêm danh mục</h2>
-          <label htmlFor="new-category-name">Tên danh mục</label>
-          <input id="new-category-name" value={newCategory.name} onChange={(event) => setNewCategory((draft) => ({ ...draft, name: event.target.value }))} />
-          <label htmlFor="new-category-slug">Đường dẫn</label>
-          <input id="new-category-slug" value={newCategory.slug} onChange={(event) => setNewCategory((draft) => ({ ...draft, slug: event.target.value }))} />
-          <button type="button" onClick={createCategory}>
+        <div className="menu-new-category card grid gap-x-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+          <h2 className="text-lg font-semibold sm:col-span-3">Thêm danh mục</h2>
+          <div>
+            <label htmlFor="new-category-name">Tên danh mục</label>
+            <input id="new-category-name" value={newCategory.name} onChange={(event) => setNewCategory((draft) => ({ ...draft, name: event.target.value }))} />
+          </div>
+          <div>
+            <label htmlFor="new-category-slug">Đường dẫn</label>
+            <input id="new-category-slug" value={newCategory.slug} onChange={(event) => setNewCategory((draft) => ({ ...draft, slug: event.target.value }))} />
+          </div>
+          <button type="button" className="btn-primary mt-3 sm:mt-0" onClick={createCategory}>
             Thêm danh mục
           </button>
         </div>
