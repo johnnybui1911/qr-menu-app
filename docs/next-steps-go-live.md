@@ -155,7 +155,7 @@ Chi tiết: `docs/runbook-oauth.md`.
 - đăng nhập Google chuyển sang `accounts.google.com` với `redirect_uri` production;
 - bundle storefront trỏ API production, không còn `127.0.0.1`.
 
-Còn phải chạy job `deploy` trên GitHub Actions ít nhất một lần để kiểm `CLOUDFLARE_API_TOKEN`.
+Job `deploy` trên GitHub Actions đã chạy thành công (run 36241087282, 2026-09-26), nên `CLOUDFLARE_API_TOKEN` hợp lệ. Log ghi đúng hai origin production.
 
 ### 6.1 Origin production
 
@@ -279,7 +279,7 @@ Chi tiết: `docs/runbook-smoke-test.md`.
 
 ## Bước 10 — Kiểm tra cuối trước ngày mở bán
 
-- [ ] CI xanh trên `main`; job `deploy` đã chạy thành công ít nhất một lần.
+- [x] CI xanh trên `main`; job `deploy` đã chạy thành công ít nhất một lần (run 36241087282).
 - [ ] Owner đăng nhập được; tài khoản Google lạ bị từ chối.
 - [ ] Nhân viên nhận lời mời và đăng nhập được; nhân viên **không** thấy Menu, Bàn, Hoàn tiền (duyệt), Doanh thu, Nhân viên.
 - [ ] QR mọi bàn đã in và quét thử được.

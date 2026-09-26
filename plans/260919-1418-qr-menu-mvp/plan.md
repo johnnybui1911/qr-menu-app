@@ -243,6 +243,8 @@ Deploy production lần đầu (2026-09-26, chạy tay trên máy bằng `npm ru
   - menu với token lạ → 404 đồng nhất (có đọc D1);
   - webhook → 503 `payfs_not_configured` (fail-closed);
   - bundle storefront trỏ API production, không còn `127.0.0.1`.
-- Còn cần chủ tài khoản: đăng nhập Google thật (phase 6), push (token `gh` thiếu scope `workflow`) rồi chạy job `deploy` trên CI để kiểm `CLOUDFLARE_API_TOKEN`.
+- Chủ quán đã đăng nhập Google thật bằng `INITIAL_OWNER_EMAIL` → vào Console với quyền Owner. Chưa thử được tài khoản lạ vì Console **không có nút đăng xuất**. Đã bổ sung nút (phase 9, commit `6338465`) kèm test browser và integration.
+- Đã push (chủ tài khoản cấp scope `workflow`). Chạy `workflow_dispatch` trên `main` (run 36241087282): verify ✅, deploy ✅. `CLOUDFLARE_API_TOKEN` hợp lệ; log deploy in đúng hai origin production; sau deploy vẫn đủ 5 secret; bundle Console có sign-out; CORS, session 401 và `redirect_uri` vẫn đúng.
+- Còn cần chủ tài khoản: đăng xuất rồi thử một tài khoản Google lạ (phải bị từ chối) để đóng regression gate của phase 6.
 
 <!-- slug: qr-menu-mvp -->
