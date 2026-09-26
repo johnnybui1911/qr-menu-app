@@ -20,17 +20,21 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Chromium is needed by the browser tier inside `npm test` (Vitest browser mode) and by the e2e step.
+      - run: npx playwright install --with-deps chromium
       - run: npm run typecheck
       - run: npm test
       - run: npm run build:console
       - run: npm run test:artifacts
       - run: npm run build:storefront
-      - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
 
   deploy:
     needs: verify
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    # Manual only until production is provisioned (D1/R2 created, database_id in wrangler.jsonc, real
+    # CONSOLE_ORIGIN/STOREFRONT_ORIGIN, Cloudflare secrets, VITE_STOREFRONT_API_BASE_URL for the storefront build —
+    # see docs/runbook-cutover.md). Restore `|| github.ref == 'refs/heads/main'` to deploy on every push to main.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
