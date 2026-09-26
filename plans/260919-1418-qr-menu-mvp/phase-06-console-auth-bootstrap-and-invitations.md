@@ -192,6 +192,8 @@ npm run typecheck && npm test
 
 Cộng bằng chứng tay một lần: đăng nhập Google thật vào Console local bằng `INITIAL_OWNER_EMAIL` → thấy `role: owner`; đăng nhập bằng tài khoản Google khác → bị từ chối với đúng một thông báo.
 
+**Đã làm trên production 2026-09-26:** chủ quán đăng nhập bằng `INITIAL_OWNER_EMAIL` và vào được với quyền Owner; đăng xuất rồi thử một tài khoản Google khác thì bị từ chối (chủ quán xác nhận). D1 production khớp với kết quả đó: 1 `user`, 1 `store_memberships` owner active, 1 `store_bootstrap_claims`. Tài khoản bị từ chối không để lại row user nào. <!-- Updated: Cook 2026-09-26 -->
+
 ## Success criteria
 
 - [x] T1–T28, A1–A3 xanh

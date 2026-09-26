@@ -280,7 +280,7 @@ Chi tiết: `docs/runbook-smoke-test.md`.
 ## Bước 10 — Kiểm tra cuối trước ngày mở bán
 
 - [x] CI xanh trên `main`; job `deploy` đã chạy thành công ít nhất một lần (run 36241087282).
-- [ ] Owner đăng nhập được; tài khoản Google lạ bị từ chối.
+- [x] Owner đăng nhập được; tài khoản Google lạ bị từ chối (kiểm trên production 2026-09-26).
 - [ ] Nhân viên nhận lời mời và đăng nhập được; nhân viên **không** thấy Menu, Bàn, Hoàn tiền (duyệt), Doanh thu, Nhân viên.
 - [ ] QR mọi bàn đã in và quét thử được.
 - [ ] Đơn chưa thanh toán tự huỷ sau 30 phút. Cron `*/1` đang chạy: xem Dashboard → Workers → `qr-menu-app` → Logs, có dòng `reconcile_expiry`.
