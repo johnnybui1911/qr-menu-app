@@ -18,8 +18,13 @@ export function SignOutButton({ redirect = defaultRedirect }: { redirect?: (url:
   async function signOut() {
     setPending(true);
     setFailed(false);
-    const result = await apiSend('/api/auth/sign-out', 'POST', {});
-    if (result.status !== 200) {
+    let confirmed = false;
+    try {
+      confirmed = (await apiSend('/api/auth/sign-out', 'POST', {})).status === 200;
+    } catch {
+      // fetch rejects when offline / on a dropped connection — same outcome as a refused sign-out: say so, stay here.
+    }
+    if (!confirmed) {
       setPending(false);
       setFailed(true);
       return;

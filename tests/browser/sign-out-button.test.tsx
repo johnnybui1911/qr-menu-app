@@ -31,4 +31,16 @@ describe('SignOutButton', () => {
     await expect.element(screen.getByRole('alert')).toHaveTextContent('Đăng xuất chưa thành công');
     expect(redirect).not.toHaveBeenCalled();
   });
+
+  it('does not hang on "Đang đăng xuất…" when the request itself fails (offline, dropped connection)', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const redirect = vi.fn();
+
+    const screen = await render(<SignOutButton redirect={redirect} />);
+    await screen.getByRole('button', { name: 'Đăng xuất' }).click();
+
+    await expect.element(screen.getByRole('alert')).toHaveTextContent('Đăng xuất chưa thành công');
+    await expect.element(screen.getByRole('button', { name: 'Đăng xuất' })).toBeEnabled();
+    expect(redirect).not.toHaveBeenCalled();
+  });
 });
