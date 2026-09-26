@@ -12,11 +12,20 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api", "/api/*"]
   },
-  // database_id is omitted on purpose: Wrangler provisions the database on first deploy and writes the id back.
-  "d1_databases": [{ "binding": "DB", "database_name": "qr-menu-app-db", "migrations_dir": "migrations" }],
+  // Production D1 created once with `wrangler d1 create qr-menu-app-db` (2026-09-26). The id is not a secret; keeping it
+  // here makes deploy/migrate target this database deterministically instead of relying on deploy-time provisioning.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "qr-menu-app-db",
+      "database_id": "ef2d8d8d-322d-4c66-a558-59a00704d654",
+      "migrations_dir": "migrations"
+    }
+  ],
   "r2_buckets": [{ "binding": "FILES", "bucket_name": "qr-menu-app-files" }],
   "triggers": { "crons": ["*/1 * * * *", "*/5 * * * *"] },
-  // Origins are local-dev values; deploys override them with the real origins (D21).
+  // Origins are local-dev values and stay that way: `npm run deploy:*` (scripts/deploy-worker.ts) injects the real
+  // origins with `wrangler deploy --var` from CONSOLE_ORIGIN/STOREFRONT_ORIGIN in the environment — never commit them (D21).
   // Provider base URLs live here, never in source, so tests can point them at stubs.
   "vars": {
     "CONSOLE_ORIGIN": "http://127.0.0.1:5173",
